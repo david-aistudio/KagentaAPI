@@ -1,3 +1,19 @@
+import os
+import sys
+
+# --- MONKEY PATCH FOR VERCEL READ-ONLY FS ---
+# This must run before g4f tries to load cookie directories
+try:
+    import platformdirs
+    def mock_user_config_dir(appname=None, appauthor=None, version=None, roaming=True):
+        return "/tmp"
+    platformdirs.user_config_dir = mock_user_config_dir
+except ImportError:
+    pass
+
+# Force home dir to /tmp just in case
+os.environ["HOME"] = "/tmp"
+
 import g4f
 import asyncio
 from typing import Optional, AsyncGenerator
@@ -22,26 +38,19 @@ class NativeAIService:
         # Optimizations for Serverless/CLI
         g4f.debug.logging = False
         g4f.debug.version_check = False
-        
-        # FIX: Vercel is read-only, force cookie dir to /tmp
-        import os
-        os.environ["G4F_COOKIES_DIR"] = "/tmp"
-        g4f.cookies.dir = "/tmp"
         g4f.cookies.use_all_cookies = False
 
     async def chat_stream(self, message: str, model_alias: str = "gpt-4o"):
         """
-        Stream chat response using g4f (Auto-Provider).
+        Stream chat response using g4f.
         """
         model_id = self.MODELS.get(model_alias, "gpt-4o")
         
         try:
-            # g4f's streaming is a generator, not async generator usually,
-            # but we wrap it to be safe or use the sync iterator in a thread if needed.
-            # For simplicity in FastAPI, we iterate the generator.
-            
+            # Force Blackbox for stability on Vercel
             response = g4f.ChatCompletion.create(
                 model=model_id,
+                provider=g4f.Provider.Blackbox,
                 messages=[{"role": "user", "content": message}],
                 stream=True
             )
@@ -49,8 +58,6 @@ class NativeAIService:
             for chunk in response:
                 if chunk:
                     yield str(chunk)
-                    # Small sleep to yield control in async loop if needed, 
-                    # though g4f might block. In production, run in executor.
                     await asyncio.sleep(0)
 
         except Exception as e:
@@ -62,16 +69,20 @@ class NativeAIService:
         """
         model_id = self.MODELS.get(model_alias, "gpt-4o")
         try:
-            # Using create_async if available, else standard create
+            # Explicitly use Blackbox or DuckDuckGo to avoid cookie scanning
+            # Blackbox is usually the most robust free provider
+            provider = g4f.Provider.Blackbox
+            
             response = await g4f.ChatCompletion.create_async(
                 model=model_id,
+                provider=provider,
                 messages=[{"role": "user", "content": message}]
             )
             return {
                 "status": True,
                 "model": model_alias,
                 "result": response,
-                "engine": "Kagenta Native (g4f)"
+                "engine": "Kagenta Native (g4f:Blackbox)"
             }
         except Exception as e:
             return {
