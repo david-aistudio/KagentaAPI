@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
-from app.routers import mail, ai
+from app.routers import mail
 import uvicorn
 import os
 
@@ -9,14 +9,13 @@ import os
 app = FastAPI(
     title="KagentaMail",
     description="Premium Disposable Email Service",
-    version="1.1.0-RAG",
+    version="1.3.0-LITE",
     docs_url=None, 
     redoc_url=None
 )
 
 # Register Routers
 app.include_router(mail.router)
-app.include_router(ai.router)
 
 @app.get("/", response_class=HTMLResponse)
 async def root():
