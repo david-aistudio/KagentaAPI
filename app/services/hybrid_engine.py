@@ -35,14 +35,18 @@ class CombinedEngineService:
 
     async def _get_vqd(self) -> str:
         headers = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
             "x-vqd-accept": "1"
         }
         async with httpx.AsyncClient() as client:
             try:
                 resp = await client.get(self.DDG_STATUS_URL, headers=headers, timeout=10)
+                if resp.status_code != 200:
+                    print(f"[DDG Error] Status: {resp.status_code}, Body: {resp.text}")
+                    return None
                 return resp.headers.get("x-vqd-4")
-            except:
+            except Exception as e:
+                print(f"[DDG Exception] {str(e)}")
                 return None
 
     async def chat_complete(self, message: str, model: str = "gpt-4o") -> dict:
