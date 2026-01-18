@@ -19,7 +19,10 @@
             font-family: 'Inter', sans-serif;
             background-color: var(--bg-color);
             color: #e5e5e5;
-            background-image: radial-gradient(circle at 50% 0%, #111 0%, #000 50%);
+            background-image: 
+                radial-gradient(circle at 15% 50%, rgba(76, 29, 149, 0.08), transparent 25%), 
+                radial-gradient(circle at 85% 30%, rgba(20, 184, 166, 0.08), transparent 25%);
+            scroll-behavior: smooth;
         }
         .glass {
             background: var(--card-bg);
@@ -32,13 +35,24 @@
             transform: translateY(-2px);
             box-shadow: 0 20px 40px -10px rgba(0,0,0,0.5);
         }
-        .method-get { color: #4ade80; background: rgba(74, 222, 128, 0.1); }
-        .method-post { color: #facc15; background: rgba(250, 204, 21, 0.1); }
-        
+        .section-title {
+            position: relative;
+            padding-left: 1rem;
+        }
+        .section-title::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 10%;
+            bottom: 10%;
+            width: 3px;
+            background: white;
+            border-radius: 4px;
+        }
         /* Terminal Output */
         .terminal {
             font-family: 'JetBrains Mono', monospace;
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             background: #0a0a0a;
             border: 1px solid #222;
         }
@@ -50,7 +64,7 @@
         }
         input:focus, select:focus {
             outline: none;
-            border-color: #444;
+            border-color: #666;
         }
         /* Custom Scrollbar */
         ::-webkit-scrollbar { width: 6px; }
@@ -66,183 +80,245 @@
     <div class="max-w-7xl mx-auto px-6 py-12">
         
         <!-- HERO HEADER -->
-        <header class="text-center mb-20 space-y-4">
-            <div class="inline-block px-3 py-1 rounded-full bg-white/5 border border-white/10 text-xs font-mono text-gray-400 mb-4">
+        <header class="text-center mb-24 space-y-4">
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-xs font-mono text-gray-400 mb-4 hover:bg-white/10 transition-colors cursor-pointer">
+                <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
                 v3.0.0-HYDRA
             </div>
-            <h1 class="text-5xl md:text-7xl font-bold tracking-tighter text-transparent bg-clip-text bg-gradient-to-b from-white to-gray-600">
-                Kagenta API
+            <h1 class="text-6xl md:text-8xl font-bold tracking-tighter text-white">
+                Kagenta<span class="text-gray-600">API</span>
             </h1>
-            <p class="text-lg text-gray-500 max-w-2xl mx-auto">
-                The Nexus of Intelligence. Professional AI, Media, and Data processing infrastructure.
+            <p class="text-lg text-gray-500 max-w-2xl mx-auto font-light">
+                Professional AI Infrastructure & Media Processing.
             </p>
-            <div class="pt-6 relative max-w-md mx-auto">
-                <input type="text" id="searchBar" placeholder="Search 50+ endpoints..." class="w-full px-6 py-4 rounded-full bg-white/5 border border-white/10 focus:bg-white/10 focus:border-white/20 text-center placeholder-gray-600 outline-none transition-all">
-                <div class="absolute right-6 top-10 text-gray-600 pointer-events-none">⌘K</div>
+            <div class="pt-8 relative max-w-lg mx-auto">
+                <input type="text" id="searchBar" placeholder="Search endpoints (e.g. gpt, tiktok)..." class="w-full px-6 py-4 rounded-2xl bg-white/5 border border-white/10 focus:bg-white/10 focus:border-white/30 text-center placeholder-gray-600 outline-none transition-all text-sm font-mono backdrop-blur-md">
+                <div class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-700 text-xs border border-white/10 px-2 py-1 rounded hidden md:block">/</div>
             </div>
         </header>
 
-        <!-- CONTENT GRID -->
-        <div id="api-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <!-- Cards will be injected here by JS -->
+        <!-- NAVIGATION PILLS -->
+        <nav class="flex flex-wrap justify-center gap-2 mb-16" id="nav-pills">
+            <!-- Pilled injected by JS -->
+        </nav>
+
+        <!-- MAIN CONTAINER -->
+        <div id="main-container" class="space-y-24">
+            <!-- Categories injected by JS -->
         </div>
 
-        <footer class="mt-32 text-center text-gray-700 text-sm pb-10">
-            <p>&copy; 2026 David AI Studio. Powered by Zenzxz Engine.</p>
+        <footer class="mt-32 border-t border-white/10 pt-12 pb-12 text-center text-gray-600 text-sm">
+            <p>&copy; 2026 David AI Studio. Engineered for Speed.</p>
         </footer>
     </div>
 
     <!-- JAVASCRIPT LOGIC -->
     <script>
         // === DATABASE OF ENDPOINTS ===
+        // Categories: "AI Chat", "AI Image", "Downloader", "Search Engine", "Image Maker", "Random"
         const endpoints = [
-            // --- AI ---
-            { cat: 'AI', method: 'GET', path: '/ai/gpt', desc: 'OpenAI GPT-4o Chat', params: [{n:'question', r:true}, {n:'prompt', d:'You are helpful'}] },
-            { cat: 'AI', method: 'GET', path: '/ai/gemini', desc: 'Google Gemini Pro', params: [{n:'text', r:true}, {n:'id'}] },
-            { cat: 'AI', method: 'GET', path: '/ai/copilot', desc: 'Microsoft Copilot', params: [{n:'message', r:true}, {n:'model', d:'default'}] },
-            { cat: 'AI', method: 'GET', path: '/ai/flux', desc: 'Flux Image Generation', params: [{n:'prompt', r:true}] },
-            { cat: 'AI', method: 'GET', path: '/ai/felo', desc: 'Felo AI Search', params: [{n:'query', r:true}] },
-            { cat: 'AI', method: 'GET', path: '/ai/jeeves', desc: 'Jeeves AI', params: [{n:'prompt', r:true}] },
-            { cat: 'AI', method: 'GET', path: '/ai/writecream', desc: 'Writecream Logic', params: [{n:'question', r:true}, {n:'logic', d:'general'}] },
-            { cat: 'AI', method: 'GET', path: '/ai/lyrics', desc: 'Song Lyrics Gen', params: [{n:'prompt', r:true}] },
-            { cat: 'AI', method: 'GET', path: '/ai/story', desc: 'Story Generator', params: [{n:'text', r:true}, {n:'mode', d:'creative'}] },
-            { cat: 'AI', method: 'POST', path: '/ai/nano-banana', desc: 'Img2Img Editing', params: [{n:'image', t:'file'}, {n:'prompt'}] },
+            // --- AI CHAT ---
+            { cat: 'AI Chat', method: 'GET', path: '/ai/gpt', desc: 'GPT-4o', params: [{n:'question', r:true}, {n:'prompt', d:'You are helpful'}] },
+            { cat: 'AI Chat', method: 'GET', path: '/ai/gemini', desc: 'Google Gemini', params: [{n:'text', r:true}, {n:'id'}] },
+            { cat: 'AI Chat', method: 'GET', path: '/ai/copilot', desc: 'MS Copilot', params: [{n:'message', r:true}, {n:'model', d:'default'}] },
+            { cat: 'AI Chat', method: 'GET', path: '/ai/felo', desc: 'Felo Search AI', params: [{n:'query', r:true}] },
+            { cat: 'AI Chat', method: 'GET', path: '/ai/jeeves', desc: 'Jeeves AI', params: [{n:'prompt', r:true}] },
+            { cat: 'AI Chat', method: 'GET', path: '/ai/writecream', desc: 'Writecream', params: [{n:'question', r:true}, {n:'logic', d:'general'}] },
+            { cat: 'AI Chat', method: 'GET', path: '/ai/lyrics', desc: 'Lyrics Generator', params: [{n:'prompt', r:true}] },
+            { cat: 'AI Chat', method: 'GET', path: '/ai/story', desc: 'Story Generator', params: [{n:'text', r:true}, {n:'mode', d:'creative'}] },
+
+            // --- AI IMAGE ---
+            { cat: 'AI Image', method: 'GET', path: '/ai/flux', desc: 'Flux Generation', params: [{n:'prompt', r:true}] },
+            { cat: 'AI Image', method: 'GET', path: '/maker/magic-studio', desc: 'Magic Studio', params: [{n:'prompt', r:true}] },
+            { cat: 'AI Image', method: 'POST', path: '/ai/nano-banana', desc: 'Nano Banana (Edit)', params: [{n:'image', t:'file'}, {n:'prompt'}] },
 
             // --- DOWNLOADER ---
-            { cat: 'DL', method: 'GET', path: '/downloader/tiktok', desc: 'TikTok/Douyin No WM', params: [{n:'url', r:true}] },
-            { cat: 'DL', method: 'GET', path: '/downloader/instagram', desc: 'Instagram Reels/Post', params: [{n:'url', r:true}] },
-            { cat: 'DL', method: 'GET', path: '/downloader/spotify', desc: 'Spotify Downloader', params: [{n:'url', r:true}] },
-            { cat: 'DL', method: 'GET', path: '/downloader/soundcloud', desc: 'SoundCloud MP3', params: [{n:'url', r:true}] },
-            { cat: 'DL', method: 'GET', path: '/downloader/twitter', desc: 'X/Twitter Media', params: [{n:'url', r:true}] },
-            { cat: 'DL', method: 'GET', path: '/downloader/ytmp3', desc: 'YouTube Audio', params: [{n:'url', r:true}] },
-            { cat: 'DL', method: 'GET', path: '/downloader/ytmp4', desc: 'YouTube Video', params: [{n:'url', r:true}, {n:'resolution', d:'720'}] },
-            { cat: 'DL', method: 'GET', path: '/downloader/threads', desc: 'Threads Media', params: [{n:'url', r:true}] },
-            { cat: 'DL', method: 'GET', path: '/downloader/npm', desc: 'NPM Package DL', params: [{n:'query', r:true}] },
+            { cat: 'Downloader', method: 'GET', path: '/downloader/tiktok', desc: 'TikTok No WM', params: [{n:'url', r:true}] },
+            { cat: 'Downloader', method: 'GET', path: '/downloader/instagram', desc: 'Instagram DL', params: [{n:'url', r:true}] },
+            { cat: 'Downloader', method: 'GET', path: '/downloader/spotify', desc: 'Spotify DL', params: [{n:'url', r:true}] },
+            { cat: 'Downloader', method: 'GET', path: '/downloader/soundcloud', desc: 'SoundCloud DL', params: [{n:'url', r:true}] },
+            { cat: 'Downloader', method: 'GET', path: '/downloader/twitter', desc: 'X / Twitter DL', params: [{n:'url', r:true}] },
+            { cat: 'Downloader', method: 'GET', path: '/downloader/threads', desc: 'Threads DL', params: [{n:'url', r:true}] },
+            { cat: 'Downloader', method: 'GET', path: '/downloader/ytmp3', desc: 'YouTube MP3', params: [{n:'url', r:true}] },
+            { cat: 'Downloader', method: 'GET', path: '/downloader/ytmp4', desc: 'YouTube MP4', params: [{n:'url', r:true}, {n:'resolution', d:'720'}] },
+            { cat: 'Downloader', method: 'GET', path: '/downloader/webmusic', desc: 'WebMusic DL', params: [{n:'url', r:true}] },
+            { cat: 'Downloader', method: 'GET', path: '/downloader/npm', desc: 'NPM Package', params: [{n:'query', r:true}] },
 
             // --- SEARCH ---
-            { cat: 'Search', method: 'GET', path: '/search/google-image', desc: 'Google Images', params: [{n:'query', r:true}] },
-            { cat: 'Search', method: 'GET', path: '/search/pinterest', desc: 'Pinterest', params: [{n:'query', r:true}] },
-            { cat: 'Search', method: 'GET', path: '/search/gsmarena', desc: 'Phone Specs', params: [{n:'query', r:true}] },
-            { cat: 'Search', method: 'GET', path: '/search/spotify', desc: 'Spotify Search', params: [{n:'query', r:true}] },
-            { cat: 'Search', method: 'GET', path: '/search/youtube', desc: 'YouTube Search', params: [{n:'query', r:true}] },
-            { cat: 'Search', method: 'GET', path: '/search/play-youtube', desc: 'Play YT Audio', params: [{n:'query', r:true}] },
-            { cat: 'Search', method: 'GET', path: '/search/tiktok', desc: 'TikTok Search', params: [{n:'query', r:true}] },
-            { cat: 'Search', method: 'GET', path: '/search/wikipedia', desc: 'Wiki Indo', params: [{n:'query', r:true}] },
-            { cat: 'Search', method: 'GET', path: '/search/apple-music', desc: 'Apple Music', params: [{n:'keyword', r:true}] },
+            { cat: 'Search Engine', method: 'GET', path: '/search/google-image', desc: 'Google Images', params: [{n:'query', r:true}] },
+            { cat: 'Search Engine', method: 'GET', path: '/search/pinterest', desc: 'Pinterest', params: [{n:'query', r:true}] },
+            { cat: 'Search Engine', method: 'GET', path: '/search/gsmarena', desc: 'GSM Arena', params: [{n:'query', r:true}] },
+            { cat: 'Search Engine', method: 'GET', path: '/search/spotify', desc: 'Spotify Search', params: [{n:'query', r:true}] },
+            { cat: 'Search Engine', method: 'GET', path: '/search/youtube', desc: 'YouTube Search', params: [{n:'query', r:true}] },
+            { cat: 'Search Engine', method: 'GET', path: '/search/play-youtube', desc: 'Play YouTube', params: [{n:'query', r:true}] },
+            { cat: 'Search Engine', method: 'GET', path: '/search/tiktok', desc: 'TikTok Search', params: [{n:'query', r:true}] },
+            { cat: 'Search Engine', method: 'GET', path: '/search/wikipedia', desc: 'Wikipedia', params: [{n:'query', r:true}] },
+            { cat: 'Search Engine', method: 'GET', path: '/search/apple-music', desc: 'Apple Music', params: [{n:'keyword', r:true}] },
 
             // --- MAKER ---
-            { cat: 'Maker', method: 'GET', path: '/maker/brat', desc: 'Brat Generator', params: [{n:'text', r:true}] },
-            { cat: 'Maker', method: 'GET', path: '/maker/fake-iphone-chat', desc: 'Fake iMessage', params: [{n:'text'}, {n:'chatime'}, {n:'statusbartime'}] },
-            { cat: 'Maker', method: 'GET', path: '/maker/fake-call', desc: 'Fake Call UI', params: [{n:'nama'}, {n:'durasi'}, {n:'avatar'}] },
-            { cat: 'Maker', method: 'GET', path: '/maker/fake-story', desc: 'Fake IG Story', params: [{n:'username'}, {n:'caption'}, {n:'ppurl'}] },
-            { cat: 'Maker', method: 'GET', path: '/maker/fake-tweet', desc: 'Fake Twitter', params: [{n:'username'}, {n:'tweet'}, {n:'name'}] },
-            { cat: 'Maker', method: 'GET', path: '/maker/meme', desc: 'Meme Gen', params: [{n:'imageUrl'}, {n:'topText'}, {n:'bottomText'}] },
-            { cat: 'Maker', method: 'GET', path: '/maker/carbon', desc: 'Code to Image', params: [{n:'input'}, {n:'title'}] },
-            { cat: 'Maker', method: 'GET', path: '/maker/ttp', desc: 'Text to Picture', params: [{n:'text'}] },
-            { cat: 'Maker', method: 'POST', path: '/maker/fake-ml', desc: 'Fake ML Lobby', params: [{n:'image', t:'file'}, {n:'username'}] },
-            { cat: 'Maker', method: 'POST', path: '/maker/fake-story-v2', desc: 'Fake Story Custom', params: [{n:'profile_image', t:'file'}, {n:'content_image', t:'file'}, {n:'name'}] },
-            { cat: 'Maker', method: 'POST', path: '/maker/mpls-twibbon', desc: 'MPLS Twibbon', params: [{n:'file', t:'file'}] },
+            { cat: 'Image Maker', method: 'GET', path: '/maker/brat', desc: 'Brat Text', params: [{n:'text', r:true}] },
+            { cat: 'Image Maker', method: 'GET', path: '/maker/brat-video', desc: 'Brat Video', params: [{n:'text', r:true}] },
+            { cat: 'Image Maker', method: 'GET', path: '/maker/fake-iphone-chat', desc: 'iMessage', params: [{n:'text'}, {n:'chatime'}, {n:'statusbartime'}] },
+            { cat: 'Image Maker', method: 'GET', path: '/maker/fake-call', desc: 'Fake Call', params: [{n:'nama'}, {n:'durasi'}, {n:'avatar'}] },
+            { cat: 'Image Maker', method: 'GET', path: '/maker/fake-story', desc: 'IG Story V1', params: [{n:'username'}, {n:'caption'}, {n:'ppurl'}] },
+            { cat: 'Image Maker', method: 'GET', path: '/maker/fake-tweet', desc: 'Fake Tweet', params: [{n:'username'}, {n:'tweet'}, {n:'name'}] },
+            { cat: 'Image Maker', method: 'GET', path: '/maker/meme', desc: 'Meme Gen', params: [{n:'imageUrl'}, {n:'topText'}, {n:'bottomText'}] },
+            { cat: 'Image Maker', method: 'GET', path: '/maker/carbon', desc: 'Carbon Code', params: [{n:'input'}, {n:'title'}] },
+            { cat: 'Image Maker', method: 'GET', path: '/maker/ttp', desc: 'Text to Picture', params: [{n:'text'}] },
+            { cat: 'Image Maker', method: 'POST', path: '/maker/fake-ml', desc: 'Fake ML Lobby', params: [{n:'image', t:'file'}, {n:'username'}] },
+            { cat: 'Image Maker', method: 'POST', path: '/maker/fake-story-v2', desc: 'IG Story V2', params: [{n:'profile_image', t:'file'}, {n:'content_image', t:'file'}, {n:'name'}] },
+            { cat: 'Image Maker', method: 'POST', path: '/maker/mpls-twibbon', desc: 'Twibbon MPLS', params: [{n:'file', t:'file'}] },
+            { cat: 'Image Maker', method: 'POST', path: '/maker/jmk48-twibbon', desc: 'Twibbon JMK48', params: [{n:'file', t:'file'}] },
 
             // --- RANDOM ---
-            { cat: 'Random', method: 'GET', path: '/random/indonesia', desc: 'Random Indo Girl', params: [] },
-            { cat: 'Random', method: 'GET', path: '/random/china', desc: 'Random China Girl', params: [] },
-            { cat: 'Random', method: 'GET', path: '/random/blue-archive', desc: 'Random Blue Archive', params: [] }
+            { cat: 'Random', method: 'GET', path: '/random/indonesia', desc: 'Cecan Indo', params: [] },
+            { cat: 'Random', method: 'GET', path: '/random/china', desc: 'Cecan China', params: [] },
+            { cat: 'Random', method: 'GET', path: '/random/jepang', desc: 'Cecan Japan', params: [] },
+            { cat: 'Random', method: 'GET', path: '/random/blue-archive', desc: 'Blue Archive', params: [] }
         ];
 
         // === RENDER ENGINE ===
-        function renderCards(filter = "") {
-            const grid = document.getElementById('api-grid');
-            grid.innerHTML = "";
+        const orderedCategories = ["AI Chat", "AI Image", "Downloader", "Search Engine", "Image Maker", "Random"];
+
+        function renderPage(filter = "") {
+            const container = document.getElementById('main-container');
+            const nav = document.getElementById('nav-pills');
             
-            endpoints.forEach((ep, index) => {
-                if (filter && !ep.path.includes(filter) && !ep.desc.toLowerCase().includes(filter)) return;
+            container.innerHTML = "";
+            if (!filter) nav.innerHTML = ""; // Only reset nav if not filtering
 
-                const cardId = `ep-${index}`;
-                let inputsHtml = "";
-                
-                ep.params.forEach(p => {
-                    if (p.t === 'file') {
-                        inputsHtml += `<input type="file" id="${cardId}-${p.n}" class="w-full text-xs p-2 rounded mb-2 bg-black/50 border border-white/10 text-gray-400 file:mr-4 file:py-1 file:px-2 file:rounded-full file:border-0 file:text-xs file:bg-white/10 file:text-white hover:file:bg-white/20">`;
-                    } else {
-                        inputsHtml += `<input type="text" id="${cardId}-${p.n}" placeholder="${p.n}${p.r ? '*' : ''} ${p.d ? '('+p.d+')' : ''}" class="w-full text-sm px-3 py-2 rounded-lg bg-black/50 border border-white/10 mb-2 focus:border-white/30">`;
-                    }
-                });
+            // Prepare categories
+            const catsToRender = orderedCategories.filter(cat => {
+                // If filtering, check if any item in this cat matches
+                if (!filter) return true;
+                return endpoints.some(e => e.cat === cat && (e.path.toLowerCase().includes(filter) || e.desc.toLowerCase().includes(filter)));
+            });
 
-                const badgeColor = ep.method === 'GET' ? 'text-green-400 bg-green-900/20' : 'text-yellow-400 bg-yellow-900/20';
+            if (catsToRender.length === 0) {
+                container.innerHTML = `<div class="text-center text-gray-600 py-20">No endpoints found for "${filter}"</div>`;
+                return;
+            }
 
-                const html = `
-                <div class="glass rounded-2xl p-6 flex flex-col h-full">
-                    <div class="flex justify-between items-start mb-4">
-                        <div class="flex items-center gap-3">
-                            <span class="px-2 py-1 rounded text-[10px] font-bold tracking-wider ${badgeColor}">${ep.method}</span>
-                            <span class="text-xs font-mono text-gray-500">${ep.cat}</span>
-                        </div>
-                    </div>
-                    <h3 class="font-bold text-lg mb-1">${ep.desc}</h3>
-                    <code class="text-xs text-gray-500 font-mono mb-4 block">${ep.path}</code>
-                    
-                    <div class="flex-grow">
-                        ${inputsHtml}
-                    </div>
+            catsToRender.forEach(cat => {
+                // 1. Add Nav Pill (only on initial load)
+                if (!filter) {
+                    const pill = document.createElement('a');
+                    pill.href = `#cat-${cat.replace(/\s+/g, '-')}`;
+                    pill.className = "px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-sm text-gray-400 hover:text-white hover:bg-white/10 transition-colors";
+                    pill.innerText = cat;
+                    nav.appendChild(pill);
+                }
 
-                    <div class="mt-4">
-                        <button onclick="executeAPI(${index})" class="w-full py-2 bg-white text-black font-semibold rounded-lg hover:bg-gray-200 transition-colors text-sm">
-                            Execute
-                        </button>
-                    </div>
-
-                    <div id="${cardId}-result" class="mt-4 hidden">
-                        <div class="terminal rounded-lg overflow-hidden">
-                            <div class="bg-[#1a1a1a] px-3 py-1 text-[10px] text-gray-500 border-b border-[#222] flex justify-between">
-                                <span>OUTPUT</span>
-                                <span id="${cardId}-time">0ms</span>
-                            </div>
-                            <pre class="p-3 overflow-auto max-h-40"><code id="${cardId}-code" class="language-json"></code></pre>
-                        </div>
-                    </div>
-                </div>
+                // 2. Create Section
+                const section = document.createElement('section');
+                section.id = `cat-${cat.replace(/\s+/g, '-')}`;
+                section.innerHTML = `
+                    <h2 class="text-2xl font-bold mb-8 text-white flex items-center gap-3 section-title">
+                        ${cat}
+                    </h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="grid-${cat}"></div>
                 `;
-                grid.innerHTML += html;
+                container.appendChild(section);
+
+                // 3. Render Cards in this section
+                const grid = section.querySelector('div');
+                const catEndpoints = endpoints.filter(e => e.cat === cat);
+
+                catEndpoints.forEach((ep, index) => {
+                    // Filter check again for individual cards
+                    if (filter && !ep.path.toLowerCase().includes(filter) && !ep.desc.toLowerCase().includes(filter)) return;
+
+                    const uniqueId = `ep-${cat.replace(/\s/g,'')}-${index}`;
+                    let inputsHtml = "";
+                    
+                    ep.params.forEach(p => {
+                        if (p.t === 'file') {
+                            inputsHtml += `<input type="file" id="${uniqueId}-${p.n}" class="w-full text-xs p-2 rounded mb-3 bg-black/50 border border-white/10 text-gray-400 file:mr-4 file:py-1 file:px-2 file:rounded-md file:border-0 file:text-xs file:bg-white/10 file:text-white hover:file:bg-white/20 transition-all">`;
+                        } else {
+                            inputsHtml += `<input type="text" id="${uniqueId}-${p.n}" placeholder="${p.n}${p.r ? '*' : ''}" class="w-full text-sm px-4 py-2.5 rounded-xl bg-black/50 border border-white/10 mb-3 focus:border-white/30 focus:bg-black/80 transition-all">`;
+                        }
+                    });
+
+                    const badgeColor = ep.method === 'GET' ? 'text-green-400 bg-green-400/10 border-green-400/20' : 'text-yellow-400 bg-yellow-400/10 border-yellow-400/20';
+
+                    const card = document.createElement('div');
+                    card.className = "glass rounded-3xl p-6 flex flex-col h-full relative group";
+                    card.innerHTML = `
+                        <div class="flex justify-between items-start mb-4">
+                            <h3 class="font-bold text-lg text-white group-hover:text-gray-200 transition-colors">${ep.desc}</h3>
+                            <span class="px-2 py-1 rounded-md text-[10px] font-bold tracking-wider border ${badgeColor}">${ep.method}</span>
+                        </div>
+                        <code class="text-[10px] text-gray-500 font-mono mb-6 block bg-black/30 p-2 rounded-lg break-all">${ep.path}</code>
+                        
+                        <div class="flex-grow space-y-1">
+                            ${inputsHtml}
+                        </div>
+
+                        <div class="mt-6">
+                            <button onclick="executeAPI('${uniqueId}', '${ep.path}', '${ep.method}')" class="w-full py-3 bg-white text-black font-bold rounded-xl hover:bg-gray-200 transition-all text-sm shadow-[0_0_20px_-5px_rgba(255,255,255,0.3)]">
+                                EXECUTE
+                            </button>
+                        </div>
+
+                        <div id="${uniqueId}-result" class="mt-4 hidden transition-all">
+                            <div class="terminal rounded-xl overflow-hidden shadow-2xl">
+                                <div class="bg-[#151515] px-4 py-2 text-[10px] text-gray-500 border-b border-[#222] flex justify-between items-center">
+                                    <span>STATUS: <span id="${uniqueId}-status" class="text-yellow-500">PENDING</span></span>
+                                    <span id="${uniqueId}-time">0ms</span>
+                                </div>
+                                <pre class="p-4 overflow-auto max-h-60 scrollbar-hide"><code id="${uniqueId}-code" class="language-json text-xs"></code></pre>
+                            </div>
+                        </div>
+                    `;
+                    grid.appendChild(card);
+                });
             });
         }
 
         // === EXECUTION ENGINE ===
-        async function executeAPI(index) {
-            const ep = endpoints[index];
-            const cardId = `ep-${index}`;
-            const btn = document.querySelector(`button[onclick="executeAPI(${index})"]`);
-            const resDiv = document.getElementById(`${cardId}-result`);
-            const codeBlock = document.getElementById(`${cardId}-code`);
-            const timeLabel = document.getElementById(`${cardId}-time`);
+        async function executeAPI(id, path, method) {
+            const btn = document.querySelector(`button[onclick*="'${id}'"]`);
+            const resDiv = document.getElementById(`${id}-result`);
+            const codeBlock = document.getElementById(`${id}-code`);
+            const timeLabel = document.getElementById(`${id}-time`);
+            const statusLabel = document.getElementById(`${id}-status`);
 
-            btn.innerText = "Processing...";
+            // UI State Loading
+            const originalText = btn.innerText;
+            btn.innerText = "PROCESSING...";
             btn.disabled = true;
+            btn.classList.add("opacity-50", "cursor-not-allowed");
             resDiv.classList.remove('hidden');
-            codeBlock.innerText = "Requesting...";
+            codeBlock.innerHTML = '<span class="animate-pulse">Connecting to neural network...</span>';
+            statusLabel.innerText = "SENDING";
+            statusLabel.className = "text-yellow-500";
 
             const startTime = performance.now();
 
             try {
-                let url = window.location.origin + ep.path;
-                let options = { method: ep.method };
+                // Find params for this card
+                // We reverse engineer parameters by looking for inputs starting with ID
+                const inputs = document.querySelectorAll(`[id^="${id}-"]`);
+                let url = window.location.origin + path;
+                let options = { method: method };
 
-                if (ep.method === 'GET') {
+                if (method === 'GET') {
                     const params = new URLSearchParams();
-                    ep.params.forEach(p => {
-                        const val = document.getElementById(`${cardId}-${p.n}`).value;
-                        if (val) params.append(p.n, val);
+                    inputs.forEach(input => {
+                        const paramName = input.id.split('-').pop();
+                        if (input.value) params.append(paramName, input.value);
                     });
                     url += "?" + params.toString();
                 } else {
                     const formData = new FormData();
-                    for (const p of ep.params) {
-                        const el = document.getElementById(`${cardId}-${p.n}`);
-                        if (p.t === 'file') {
-                            if (el.files[0]) formData.append(p.n, el.files[0]);
+                    inputs.forEach(input => {
+                        const paramName = input.id.split('-').pop();
+                        if (input.type === 'file') {
+                            if (input.files[0]) formData.append(paramName, input.files[0]);
                         } else {
-                            if (el.value) formData.append(p.n, el.value);
+                            if (input.value) formData.append(paramName, input.value);
                         }
-                    }
+                    });
                     options.body = formData;
                 }
 
@@ -250,6 +326,9 @@
                 const contentType = res.headers.get("content-type");
                 const endTime = performance.now();
                 timeLabel.innerText = `${(endTime - startTime).toFixed(0)}ms`;
+
+                statusLabel.innerText = res.status + " " + res.statusText;
+                statusLabel.className = res.ok ? "text-green-500" : "text-red-500";
 
                 if (contentType && contentType.includes("application/json")) {
                     const json = await res.json();
@@ -259,23 +338,36 @@
                     // Handle Binary/Image
                     const blob = await res.blob();
                     const imgUrl = URL.createObjectURL(blob);
-                    codeBlock.innerHTML = `<a href="${imgUrl}" target="_blank" class="text-blue-400 hover:underline">Download Binary Result</a><br><img src="${imgUrl}" class="mt-2 rounded border border-gray-700 max-h-32">`;
+                    codeBlock.innerHTML = `
+                        <div class="flex flex-col gap-2 items-center">
+                            <img src="${imgUrl}" class="rounded-lg border border-gray-700 max-h-48 object-contain">
+                            <a href="${imgUrl}" download="result" class="text-blue-400 hover:text-white text-xs underline">Download Result</a>
+                        </div>`;
                 }
 
             } catch (err) {
                 codeBlock.innerText = "Error: " + err.message;
-                codeBlock.classList.add("text-red-400");
+                statusLabel.innerText = "ERROR";
+                statusLabel.className = "text-red-500";
             } finally {
-                btn.innerText = "Execute";
+                btn.innerText = originalText;
                 btn.disabled = false;
+                btn.classList.remove("opacity-50", "cursor-not-allowed");
             }
         }
 
         // Init
         document.addEventListener('DOMContentLoaded', () => {
-            renderCards();
+            renderPage();
             document.getElementById('searchBar').addEventListener('input', (e) => {
-                renderCards(e.target.value.toLowerCase());
+                renderPage(e.target.value.toLowerCase());
+            });
+            // Keyboard shortcut
+            document.addEventListener('keydown', (e) => {
+                if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+                    e.preventDefault();
+                    document.getElementById('searchBar').focus();
+                }
             });
         });
     </script>
