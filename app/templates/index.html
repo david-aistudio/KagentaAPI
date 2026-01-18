@@ -83,7 +83,7 @@
         <header class="text-center mb-24 space-y-4">
             <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-xs font-mono text-gray-400 mb-4 hover:bg-white/10 transition-colors cursor-pointer">
                 <span class="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span>
-                v4.0.0-NATIVE
+                v7.0.0-HYBRID
             </div>
             <h1 class="text-6xl md:text-8xl font-bold tracking-tighter text-white">
                 Kagenta<span class="text-gray-600">AI</span>
@@ -117,7 +117,15 @@
         // === HYBRID MODEL CONFIG ===
         const models = {
             "Chat": ["gpt-4o", "claude-3", "llama-3", "mistral", "o3-mini"],
-            "Image": ["flux", "flux-realism", "flux-anime", "flux-3d", "turbo", "midijourney", "stable-diffusion"]
+            "Image": [
+                "flux", "flux-realism", "flux-anime", "flux-3d", 
+                "turbo", "midijourney", "stable-diffusion",
+                "kontext", "nanobanana", "nanobanana-pro",
+                "seedream", "seedream-pro", 
+                "gptimage", "gptimage-large",
+                "zimage", "klein"
+            ],
+            "Video": ["veo", "seedance", "seedance-pro"]
         };
 
         // === DATABASE OF ENDPOINTS ===
@@ -126,7 +134,7 @@
             { cat: 'Native Chat', method: 'GET', path: '/native/chat', desc: 'Chat (DDG Engine)', params: [{n:'message', r:true}, {n:'model', t:'select', o:'chat'}] },
             
             // --- IMAGE (POLLINATIONS) ---
-            { cat: 'Native Image', method: 'GET', path: '/native/image', desc: 'Image Gen', params: [{n:'prompt', r:true}, {n:'model', t:'select', o:'image'}, {n:'width', d:'1024'}, {n:'height', d:'1024'}] },
+            { cat: 'Native Image', method: 'GET', path: '/native/image', desc: 'Media Gen', params: [{n:'prompt', r:true}, {n:'model', t:'select', o:'image'}, {n:'width', d:'1024'}, {n:'height', d:'1024'}] },
         ];
 
         const orderedCategories = ["Native Chat", "Native Image"];
@@ -142,7 +150,13 @@
             const getOptions = (type) => {
                 let options = "";
                 if (type === 'image') {
+                    // Combine Image and Video for dropdown
+                    options += `<optgroup label="Image">`;
                     models.Image.forEach(m => options += `<option value="${m}">${m}</option>`);
+                    options += `</optgroup>`;
+                    options += `<optgroup label="Video">`;
+                    models.Video.forEach(m => options += `<option value="${m}">${m}</option>`);
+                    options += `</optgroup>`;
                 } else {
                     models.Chat.forEach(m => options += `<option value="${m}">${m}</option>`);
                 }
@@ -150,7 +164,7 @@
             };
 
             orderedCategories.forEach(cat => {
-                // ... (Create Section Logic) ...
+                // 1. Add Nav Pill (only on initial load)
                 if (!filter) {
                     const pill = document.createElement('a');
                     pill.href = `#cat-${cat.replace(/\s+/g, '-')}`;
@@ -159,16 +173,21 @@
                     nav.appendChild(pill);
                 }
 
+                // 2. Create Section
                 const section = document.createElement('section');
                 section.id = `cat-${cat.replace(/\s+/g, '-')}`;
                 section.innerHTML = `
-                    <h2 class="text-2xl font-bold mb-8 text-white flex items-center gap-3 section-title">${cat}</h2>
+                    <h2 class="text-2xl font-bold mb-8 text-white flex items-center gap-3 section-title">
+                        ${cat}
+                    </h2>
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="grid-${cat}"></div>
                 `;
                 container.appendChild(section);
-                const grid = section.querySelector('div');
 
+                // 3. Render Cards in this section
+                const grid = section.querySelector('div');
                 const catEndpoints = endpoints.filter(e => e.cat === cat);
+
                 catEndpoints.forEach((ep, index) => {
                     const uniqueId = `ep-${cat.replace(/\s/g,'')}-${index}`;
                     let inputsHtml = "";
@@ -184,7 +203,6 @@
                         }
                     });
 
-                    // ... (Card HTML Generation) ...
                     const badgeColor = ep.method === 'GET' ? 'text-green-400 bg-green-400/10 border-green-400/20' : 'text-yellow-400 bg-yellow-400/10 border-yellow-400/20';
                     const fullUrl = `https://api.kagenta.biz.id${ep.path}`;
 
@@ -195,24 +213,33 @@
                             <h3 class="font-bold text-lg text-white group-hover:text-gray-200 transition-colors">${ep.desc}</h3>
                             <span class="px-2 py-1 rounded-md text-[10px] font-bold tracking-wider border ${badgeColor}">${ep.method}</span>
                         </div>
+                        
                         <div class="relative group/url mb-6">
                             <code class="text-[10px] text-gray-500 font-mono block bg-black/30 p-2 rounded-lg break-all pr-8 cursor-pointer hover:text-gray-300 transition-colors" onclick="navigator.clipboard.writeText('${fullUrl}'); this.classList.add('text-green-400'); setTimeout(()=>this.classList.remove('text-green-400'), 500)">${fullUrl}</code>
+                            <div class="absolute right-2 top-1/2 -translate-y-1/2 text-gray-600 opacity-0 group-hover/url:opacity-100 transition-opacity pointer-events-none">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+                            </div>
                         </div>
+                        
                         <div class="flex-grow space-y-1">
                             ${inputsHtml}
                         </div>
+
                         <div class="mt-6">
                             <button onclick="executeAPI('${uniqueId}', '${ep.path}', '${ep.method}')" class="w-full py-3 bg-white text-black font-bold rounded-xl hover:bg-gray-200 transition-all text-sm shadow-[0_0_20px_-5px_rgba(255,255,255,0.3)]">
                                 EXECUTE
                             </button>
                         </div>
+
                         <div id="${uniqueId}-result" class="mt-4 hidden transition-all">
                             <div class="terminal rounded-xl overflow-hidden shadow-2xl">
                                 <div class="bg-[#151515] px-4 py-2 text-[10px] text-gray-500 border-b border-[#222] flex justify-between items-center">
                                     <span>STATUS: <span id="${uniqueId}-status" class="text-yellow-500">PENDING</span></span>
                                     <span id="${uniqueId}-time">0ms</span>
                                 </div>
-                                <pre class="p-4 overflow-auto max-h-60 scrollbar-hide"><code id="${uniqueId}-code" class="language-json text-xs"></code></pre>
+                                <div class="p-4 overflow-auto max-h-96 scrollbar-hide" id="${uniqueId}-content">
+                                    <pre><code id="${uniqueId}-code" class="language-json text-xs"></code></pre>
+                                </div>
                             </div>
                         </div>
                     `;
@@ -226,6 +253,7 @@
             const btn = document.querySelector(`button[onclick*="'${id}'"]`);
             const resDiv = document.getElementById(`${id}-result`);
             const codeBlock = document.getElementById(`${id}-code`);
+            const contentDiv = document.getElementById(`${id}-content`);
             const timeLabel = document.getElementById(`${id}-time`);
             const statusLabel = document.getElementById(`${id}-status`);
 
@@ -236,6 +264,8 @@
             btn.classList.add("opacity-50", "cursor-not-allowed");
             resDiv.classList.remove('hidden');
             codeBlock.innerHTML = '<span class="animate-pulse">Connecting to neural network...</span>';
+            // Reset content div to just code block
+            contentDiv.innerHTML = '<pre><code id="'+id+'-code" class="language-json text-xs"><span class="animate-pulse">Connecting...</span></code></pre>';
             statusLabel.innerText = "SENDING";
             statusLabel.className = "text-yellow-500";
 
@@ -278,13 +308,51 @@
 
                 if (contentType && contentType.includes("application/json")) {
                     const json = await res.json();
-                    codeBlock.innerHTML = JSON.stringify(json, null, 2);
-                    hljs.highlightElement(codeBlock);
+                    
+                    // AUTO-RENDER LOGIC
+                    if (json.image_url) {
+                        const isVideo = json.image_url.includes(".mp4") || json.image_url.includes("model=veo") || json.image_url.includes("model=seedance");
+                        
+                        if (isVideo) {
+                             contentDiv.innerHTML = `
+                                <div class="flex flex-col gap-4 items-center">
+                                    <video controls autoplay loop class="rounded-lg border border-gray-700 w-full max-h-80 object-cover">
+                                        <source src="${json.image_url}" type="video/mp4">
+                                        Your browser does not support the video tag.
+                                    </video>
+                                    <div class="flex gap-2">
+                                        <a href="${json.image_url}" target="_blank" class="px-3 py-1 bg-blue-600 rounded text-xs text-white hover:bg-blue-500">Full Video</a>
+                                        <button onclick="navigator.clipboard.writeText('${json.image_url}')" class="px-3 py-1 bg-gray-700 rounded text-xs text-gray-300 hover:text-white">Copy URL</button>
+                                    </div>
+                                    <details class="w-full">
+                                        <summary class="text-[10px] text-gray-500 cursor-pointer">Raw JSON</summary>
+                                        <pre class="mt-2 text-xs text-gray-400 overflow-auto">${JSON.stringify(json, null, 2)}</pre>
+                                    </details>
+                                </div>`;
+                        } else {
+                            contentDiv.innerHTML = `
+                                <div class="flex flex-col gap-4 items-center">
+                                    <img src="${json.image_url}" class="rounded-lg border border-gray-700 w-full max-h-80 object-contain bg-black/50">
+                                    <div class="flex gap-2">
+                                        <a href="${json.image_url}" download="generated_image" class="px-3 py-1 bg-green-600 rounded text-xs text-white hover:bg-green-500">Download</a>
+                                        <button onclick="navigator.clipboard.writeText('${json.image_url}')" class="px-3 py-1 bg-gray-700 rounded text-xs text-gray-300 hover:text-white">Copy URL</button>
+                                    </div>
+                                    <details class="w-full">
+                                        <summary class="text-[10px] text-gray-500 cursor-pointer">Raw JSON</summary>
+                                        <pre class="mt-2 text-xs text-gray-400 overflow-auto">${JSON.stringify(json, null, 2)}</pre>
+                                    </details>
+                                </div>`;
+                        }
+                    } else {
+                        // Regular JSON (Chat)
+                        contentDiv.innerHTML = `<pre><code class="language-json text-xs">${JSON.stringify(json, null, 2)}</code></pre>`;
+                        hljs.highlightElement(contentDiv.querySelector('code'));
+                    }
                 } else {
                     // Handle Binary/Image
                     const blob = await res.blob();
                     const imgUrl = URL.createObjectURL(blob);
-                    codeBlock.innerHTML = `
+                    contentDiv.innerHTML = `
                         <div class="flex flex-col gap-2 items-center">
                             <img src="${imgUrl}" class="rounded-lg border border-gray-700 max-h-48 object-contain">
                             <a href="${imgUrl}" download="result" class="text-blue-400 hover:text-white text-xs underline">Download Result</a>
@@ -292,7 +360,7 @@
                 }
 
             } catch (err) {
-                codeBlock.innerText = "Error: " + err.message;
+                contentDiv.innerHTML = `<pre><code class="text-red-500 text-xs">Error: ${err.message}</code></pre>`;
                 statusLabel.innerText = "ERROR";
                 statusLabel.className = "text-red-500";
             } finally {

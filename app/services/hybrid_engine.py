@@ -26,7 +26,11 @@ class CombinedEngineService:
     IMAGE_URL = "https://image.pollinations.ai"
     IMAGE_MODELS = [
         "flux", "flux-pro", "flux-realism", "flux-anime", "flux-3d",
-        "turbo", "stable-diffusion", "midijourney"
+        "turbo", "stable-diffusion", "midijourney",
+        "kontext", "nanobanana", "nanobanana-pro",
+        "seedream", "seedream-pro", 
+        "gptimage", "gptimage-large",
+        "zimage", "veo", "seedance", "seedance-pro", "klein"
     ]
 
     async def _get_vqd(self) -> str:
