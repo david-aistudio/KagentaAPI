@@ -31,7 +31,8 @@ class NativeAIService:
             g4f.cookies.use_all_cookies = False
             
             # Routing Logic
-            provider = g4f.Provider.Blackbox
+            # Updated based on actual installed providers
+            provider = g4f.Provider.BlackboxPro # Was Blackbox
             model_id = g4f.models.gpt_4o
             
             if model_alias == "glm-4":
@@ -41,8 +42,11 @@ class NativeAIService:
                 provider = g4f.Provider.DeepInfra
                 model_id = g4f.models.llama_3_1_70b
             elif "claude" in model_alias:
-                provider = g4f.Provider.Blackbox
+                provider = g4f.Provider.PollinationsAI # BlackboxPro might need auth
                 model_id = g4f.models.claude_3_5_sonnet
+            elif "gpt-4" in model_alias: # Catch generic gpt-4
+                provider = g4f.Provider.DDGS # DuckDuckGo is safest free
+                model_id = g4f.models.gpt_4o_mini
 
             response = g4f.ChatCompletion.create(
                 model=model_id,
