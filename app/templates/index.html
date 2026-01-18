@@ -2,388 +2,338 @@
 <html lang="en" class="dark">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kagenta API | The Nexus</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>KagentaMail | Onyx</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/framer-motion/10.16.4/framer-motion.min.js"></script>
     <style>
         :root {
-            --bg-color: #000000;
-            --card-bg: rgba(255, 255, 255, 0.02);
-            --border-color: rgba(255, 255, 255, 0.08);
-            --active-border: rgba(255, 255, 255, 0.2);
+            --bg-body: #050505;
+            --bg-card: #0F0F0F;
+            --border-subtle: #1F1F1F;
+            --accent-primary: #FFFFFF;
+            --text-main: #EDEDED;
+            --text-muted: #888888;
         }
         body {
-            font-family: 'Inter', sans-serif;
-            background-color: var(--bg-color);
-            color: #e5e5e5;
-            background-image: 
-                radial-gradient(circle at 15% 50%, rgba(76, 29, 149, 0.08), transparent 25%), 
-                radial-gradient(circle at 85% 30%, rgba(20, 184, 166, 0.08), transparent 25%);
-            scroll-behavior: smooth;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            -webkit-tap-highlight-color: transparent;
         }
-        .glass {
-            background: var(--card-bg);
-            border: 1px solid var(--border-color);
-            backdrop-filter: blur(10px);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        .glass-panel {
+            background: rgba(15, 15, 15, 0.6);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(255,255,255,0.05);
         }
-        .glass:hover {
-            border-color: var(--active-border);
-            transform: translateY(-2px);
-            box-shadow: 0 20px 40px -10px rgba(0,0,0,0.5);
+        .btn-press {
+            transition: transform 0.1s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        .section-title {
+        .btn-press:active {
+            transform: scale(0.96);
+        }
+        .shimmer {
             position: relative;
-            padding-left: 1rem;
+            overflow: hidden;
         }
-        .section-title::before {
+        .shimmer::after {
             content: '';
             position: absolute;
-            left: 0;
-            top: 10%;
-            bottom: 10%;
-            width: 3px;
-            background: white;
-            border-radius: 4px;
+            top: 0; right: 0; bottom: 0; left: 0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.03), transparent);
+            transform: translateX(-100%);
+            animation: shimmer 2s infinite;
         }
-        /* Terminal Output */
-        .terminal {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.75rem;
-            background: #0a0a0a;
-            border: 1px solid #222;
-        }
-        input, select {
-            background: #0a0a0a;
-            border: 1px solid #222;
-            color: white;
-            transition: 0.2s;
-        }
-        input:focus, select:focus {
-            outline: none;
-            border-color: #666;
+        @keyframes shimmer {
+            100% { transform: translateX(100%); }
         }
         /* Custom Scrollbar */
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: #000; }
-        ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
     </style>
-    <script>
-        tailwind.config = { darkMode: 'class', theme: { extend: { colors: { border: 'rgba(255,255,255,0.1)' } } } }
-    </script>
 </head>
-<body class="min-h-screen">
+<body class="h-screen flex flex-col overflow-hidden">
 
-    <div class="max-w-7xl mx-auto px-6 py-12">
-        
-        <!-- HERO HEADER -->
-        <header class="text-center mb-24 space-y-4">
-            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-xs font-mono text-gray-400 mb-4 hover:bg-white/10 transition-colors cursor-pointer">
-                <span class="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span>
-                v7.0.0-HYBRID
+    <!-- HEADER -->
+    <header class="h-16 border-b border-[#1F1F1F] flex items-center justify-between px-6 bg-[#050505]/80 backdrop-blur-md z-50">
+        <div class="flex items-center gap-3">
+            <div class="w-8 h-8 bg-white rounded-lg flex items-center justify-center">
+                <i data-lucide="mail" class="text-black w-5 h-5"></i>
             </div>
-            <h1 class="text-6xl md:text-8xl font-bold tracking-tighter text-white">
-                Kagenta<span class="text-gray-600">AI</span>
-            </h1>
-            <p class="text-lg text-gray-500 max-w-2xl mx-auto font-light">
-                Pure Native AI Engine. No Keys. No Limits.
-            </p>
-            <div class="pt-8 relative max-w-lg mx-auto">
-                <input type="text" id="searchBar" placeholder="Search models (e.g. gpt, flux)..." class="w-full px-6 py-4 rounded-2xl bg-white/5 border border-white/10 focus:bg-white/10 focus:border-white/30 text-center placeholder-gray-600 outline-none transition-all text-sm font-mono backdrop-blur-md">
-                <div class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-700 text-xs border border-white/10 px-2 py-1 rounded hidden md:block">/</div>
-            </div>
-        </header>
-
-        <!-- NAVIGATION PILLS -->
-        <nav class="flex flex-wrap justify-center gap-2 mb-16" id="nav-pills">
-            <!-- Pilled injected by JS -->
-        </nav>
-
-        <!-- MAIN CONTAINER -->
-        <div id="main-container" class="space-y-24">
-            <!-- Categories injected by JS -->
+            <span class="font-bold text-lg tracking-tight">Kagenta<span class="text-[#444]">Mail</span></span>
         </div>
+        <div class="flex items-center gap-4">
+            <span class="text-xs font-mono text-[#444] hidden md:block">v1.0.0-ONYX</span>
+            <div class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+        </div>
+    </header>
 
-        <footer class="mt-32 border-t border-white/10 pt-12 pb-12 text-center text-gray-600 text-sm">
-            <p>&copy; 2026 David AI Studio. Kagenta Native Engine.</p>
-        </footer>
+    <!-- MAIN CONTENT -->
+    <main class="flex-1 flex flex-col md:flex-row relative overflow-hidden">
+        
+        <!-- LEFT: CONTROLS -->
+        <section class="w-full md:w-[400px] border-r border-[#1F1F1F] flex flex-col bg-[#080808]">
+            <div class="p-6 space-y-6">
+                <!-- Status Card -->
+                <div class="glass-panel p-5 rounded-2xl relative overflow-hidden group">
+                    <div class="absolute inset-0 bg-gradient-to-br from-purple-500/10 to-blue-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                    <label class="text-[10px] uppercase tracking-widest text-[#666] font-semibold mb-2 block">Current Address</label>
+                    
+                    <div class="relative">
+                        <input type="text" id="emailDisplay" readonly value="Generating..." 
+                            class="w-full bg-transparent text-xl font-mono text-white outline-none placeholder-[#333] truncate pr-10"
+                            onclick="copyEmail()">
+                        <button onclick="copyEmail()" class="absolute right-0 top-1/2 -translate-y-1/2 text-[#444] hover:text-white transition-colors">
+                            <i data-lucide="copy" class="w-5 h-5"></i>
+                        </button>
+                    </div>
+                    
+                    <div id="copyFeedback" class="absolute top-2 right-2 bg-white text-black text-[10px] px-2 py-1 rounded font-bold opacity-0 transition-opacity">COPIED</div>
+                </div>
+
+                <!-- Actions -->
+                <div class="grid grid-cols-2 gap-3">
+                    <button onclick="generateEmail()" class="btn-press h-12 bg-white text-black font-semibold rounded-xl flex items-center justify-center gap-2 hover:bg-gray-200 transition-colors">
+                        <i data-lucide="refresh-cw" class="w-4 h-4"></i> Generate
+                    </button>
+                    <button onclick="refreshInbox()" class="btn-press h-12 glass-panel text-white font-medium rounded-xl flex items-center justify-center gap-2 hover:bg-white/5 transition-colors">
+                        <i data-lucide="inbox" class="w-4 h-4"></i> Refresh
+                    </button>
+                </div>
+
+                <!-- Timer -->
+                <div class="flex items-center justify-center gap-2 text-xs text-[#444] font-mono mt-4">
+                    <i data-lucide="clock" class="w-3 h-3"></i>
+                    <span>Auto-refresh in <span id="timer" class="text-white">5</span>s</span>
+                </div>
+            </div>
+
+            <!-- Ad / Info Space -->
+            <div class="mt-auto p-6 text-center">
+                <p class="text-[10px] text-[#333] leading-relaxed">
+                    Messages are deleted after 1 hour.<br>
+                    Engine: Nekolabs v2 (High Speed)
+                </p>
+            </div>
+        </section>
+
+        <!-- RIGHT: INBOX -->
+        <section class="flex-1 bg-[#050505] flex flex-col relative">
+            <!-- Header Inbox -->
+            <div class="h-14 border-b border-[#1F1F1F] flex items-center px-6 justify-between">
+                <h2 class="font-medium text-sm text-[#888]">Inbox Messages</h2>
+                <span id="msgCount" class="bg-[#1F1F1F] text-white text-[10px] px-2 py-1 rounded-full">0</span>
+            </div>
+
+            <!-- List -->
+            <div id="inboxList" class="flex-1 overflow-y-auto p-4 space-y-3">
+                <!-- Empty State -->
+                <div class="h-full flex flex-col items-center justify-center text-[#222]">
+                    <i data-lucide="ghost" class="w-16 h-16 mb-4 opacity-50"></i>
+                    <p class="text-sm">Waiting for incoming mail...</p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- EMAIL DETAIL MODAL -->
+    <div id="mailModal" class="fixed inset-0 z-[100] bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+        <div class="bg-[#0F0F0F] border border-[#222] w-full max-w-2xl h-[80vh] rounded-2xl flex flex-col shadow-2xl transform scale-95 transition-transform duration-300" id="modalContent">
+            
+            <!-- Modal Header -->
+            <div class="h-16 border-b border-[#222] flex items-center justify-between px-6">
+                <div class="flex flex-col">
+                    <span id="modalSubject" class="font-bold text-white truncate max-w-md">Subject</span>
+                    <span id="modalFrom" class="text-xs text-[#666] truncate">from@example.com</span>
+                </div>
+                <button onclick="closeModal()" class="w-8 h-8 rounded-full bg-[#1A1A1A] flex items-center justify-center hover:bg-[#333] transition-colors">
+                    <i data-lucide="x" class="w-4 h-4 text-white"></i>
+                </button>
+            </div>
+
+            <!-- Modal Body -->
+            <div class="flex-1 overflow-y-auto p-6 text-sm text-[#DDD] leading-relaxed" id="modalBody">
+                <!-- Content injected here -->
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="h-14 border-t border-[#222] flex items-center px-6 justify-end bg-[#0A0A0A] rounded-b-2xl">
+                <span id="modalDate" class="text-[10px] text-[#444] font-mono">12:00 PM</span>
+            </div>
+        </div>
     </div>
 
-    <!-- JAVASCRIPT LOGIC -->
     <script>
-        // === HYBRID MODEL CONFIG ===
-        const models = {
-            "Chat": ["gpt-4o", "claude-3", "llama-3", "mistral", "o3-mini"],
-            "Image": [
-                "flux", "flux-realism", "flux-anime", "flux-3d", 
-                "turbo", "midijourney", "stable-diffusion",
-                "kontext", "nanobanana", "nanobanana-pro",
-                "seedream", "seedream-pro", 
-                "gptimage", "gptimage-large",
-                "zimage", "klein"
-            ],
-            "Video": ["veo", "seedance", "seedance-pro"]
-        };
+        lucide.createIcons();
 
-        // === DATABASE OF ENDPOINTS ===
-        const endpoints = [
-            // --- CHAT (DDG) ---
-            { cat: 'Native Chat', method: 'GET', path: '/native/chat', desc: 'Chat (DDG Engine)', params: [{n:'message', r:true}, {n:'model', t:'select', o:'chat'}] },
+        let currentEmail = localStorage.getItem('kg_email') || '';
+        let refreshInterval;
+        let countdown = 5;
+
+        // --- CORE FUNCTIONS ---
+
+        async function generateEmail() {
+            const display = document.getElementById('emailDisplay');
+            display.value = "Generating...";
+            display.classList.add('animate-pulse');
             
-            // --- IMAGE (POLLINATIONS) ---
-            { cat: 'Native Image', method: 'GET', path: '/native/image', desc: 'Media Gen', params: [{n:'prompt', r:true}, {n:'model', t:'select', o:'image'}, {n:'width', d:'1024'}, {n:'height', d:'1024'}] },
-        ];
-
-        const orderedCategories = ["Native Chat", "Native Image"];
-
-        function renderPage(filter = "") {
-            const container = document.getElementById('main-container');
-            const nav = document.getElementById('nav-pills');
-            
-            container.innerHTML = "";
-            if (!filter) nav.innerHTML = ""; 
-
-            // Helper to get options for select
-            const getOptions = (type) => {
-                let options = "";
-                if (type === 'image') {
-                    // Combine Image and Video for dropdown
-                    options += `<optgroup label="Image">`;
-                    models.Image.forEach(m => options += `<option value="${m}">${m}</option>`);
-                    options += `</optgroup>`;
-                    options += `<optgroup label="Video">`;
-                    models.Video.forEach(m => options += `<option value="${m}">${m}</option>`);
-                    options += `</optgroup>`;
-                } else {
-                    models.Chat.forEach(m => options += `<option value="${m}">${m}</option>`);
-                }
-                return options;
-            };
-
-            orderedCategories.forEach(cat => {
-                // 1. Add Nav Pill (only on initial load)
-                if (!filter) {
-                    const pill = document.createElement('a');
-                    pill.href = `#cat-${cat.replace(/\s+/g, '-')}`;
-                    pill.className = "px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-sm text-gray-400 hover:text-white hover:bg-white/10 transition-colors";
-                    pill.innerText = cat;
-                    nav.appendChild(pill);
-                }
-
-                // 2. Create Section
-                const section = document.createElement('section');
-                section.id = `cat-${cat.replace(/\s+/g, '-')}`;
-                section.innerHTML = `
-                    <h2 class="text-2xl font-bold mb-8 text-white flex items-center gap-3 section-title">
-                        ${cat}
-                    </h2>
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="grid-${cat}"></div>
-                `;
-                container.appendChild(section);
-
-                // 3. Render Cards in this section
-                const grid = section.querySelector('div');
-                const catEndpoints = endpoints.filter(e => e.cat === cat);
-
-                catEndpoints.forEach((ep, index) => {
-                    const uniqueId = `ep-${cat.replace(/\s/g,'')}-${index}`;
-                    let inputsHtml = "";
-                    
-                    ep.params.forEach(p => {
-                        if (p.t === 'select') {
-                            inputsHtml += `
-                                <select id="${uniqueId}-${p.n}" class="w-full text-sm px-4 py-2.5 rounded-xl bg-black/50 border border-white/10 mb-3 focus:border-white/30 focus:bg-black/80 transition-all">
-                                    ${getOptions(p.o)}
-                                </select>`;
-                        } else {
-                            inputsHtml += `<input type="text" id="${uniqueId}-${p.n}" placeholder="${p.n}${p.r ? '*' : ''}" value="${p.d || ''}" class="w-full text-sm px-4 py-2.5 rounded-xl bg-black/50 border border-white/10 mb-3 focus:border-white/30 focus:bg-black/80 transition-all">`;
-                        }
-                    });
-
-                    const badgeColor = ep.method === 'GET' ? 'text-green-400 bg-green-400/10 border-green-400/20' : 'text-yellow-400 bg-yellow-400/10 border-yellow-400/20';
-                    const fullUrl = `https://api.kagenta.biz.id${ep.path}`;
-
-                    const card = document.createElement('div');
-                    card.className = "glass rounded-3xl p-6 flex flex-col h-full relative group";
-                    card.innerHTML = `
-                        <div class="flex justify-between items-start mb-4">
-                            <h3 class="font-bold text-lg text-white group-hover:text-gray-200 transition-colors">${ep.desc}</h3>
-                            <span class="px-2 py-1 rounded-md text-[10px] font-bold tracking-wider border ${badgeColor}">${ep.method}</span>
-                        </div>
-                        
-                        <div class="relative group/url mb-6">
-                            <code class="text-[10px] text-gray-500 font-mono block bg-black/30 p-2 rounded-lg break-all pr-8 cursor-pointer hover:text-gray-300 transition-colors" onclick="navigator.clipboard.writeText('${fullUrl}'); this.classList.add('text-green-400'); setTimeout(()=>this.classList.remove('text-green-400'), 500)">${fullUrl}</code>
-                            <div class="absolute right-2 top-1/2 -translate-y-1/2 text-gray-600 opacity-0 group-hover/url:opacity-100 transition-opacity pointer-events-none">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
-                            </div>
-                        </div>
-                        
-                        <div class="flex-grow space-y-1">
-                            ${inputsHtml}
-                        </div>
-
-                        <div class="mt-6">
-                            <button onclick="executeAPI('${uniqueId}', '${ep.path}', '${ep.method}')" class="w-full py-3 bg-white text-black font-bold rounded-xl hover:bg-gray-200 transition-all text-sm shadow-[0_0_20px_-5px_rgba(255,255,255,0.3)]">
-                                EXECUTE
-                            </button>
-                        </div>
-
-                        <div id="${uniqueId}-result" class="mt-4 hidden transition-all">
-                            <div class="terminal rounded-xl overflow-hidden shadow-2xl">
-                                <div class="bg-[#151515] px-4 py-2 text-[10px] text-gray-500 border-b border-[#222] flex justify-between items-center">
-                                    <span>STATUS: <span id="${uniqueId}-status" class="text-yellow-500">PENDING</span></span>
-                                    <span id="${uniqueId}-time">0ms</span>
-                                </div>
-                                <div class="p-4 overflow-auto max-h-96 scrollbar-hide" id="${uniqueId}-content">
-                                    <pre><code id="${uniqueId}-code" class="language-json text-xs"></code></pre>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                    grid.appendChild(card);
-                });
-            });
-        }
-
-        // === EXECUTION ENGINE ===
-        async function executeAPI(id, path, method) {
-            const btn = document.querySelector(`button[onclick*="'${id}'"]`);
-            const resDiv = document.getElementById(`${id}-result`);
-            const codeBlock = document.getElementById(`${id}-code`);
-            const contentDiv = document.getElementById(`${id}-content`);
-            const timeLabel = document.getElementById(`${id}-time`);
-            const statusLabel = document.getElementById(`${id}-status`);
-
-            // UI State Loading
-            const originalText = btn.innerText;
-            btn.innerText = "PROCESSING...";
-            btn.disabled = true;
-            btn.classList.add("opacity-50", "cursor-not-allowed");
-            resDiv.classList.remove('hidden');
-            codeBlock.innerHTML = '<span class="animate-pulse">Connecting to neural network...</span>';
-            // Reset content div to just code block
-            contentDiv.innerHTML = '<pre><code id="'+id+'-code" class="language-json text-xs"><span class="animate-pulse">Connecting...</span></code></pre>';
-            statusLabel.innerText = "SENDING";
-            statusLabel.className = "text-yellow-500";
-
-            const startTime = performance.now();
-
             try {
-                // Find params for this card
-                // We reverse engineer parameters by looking for inputs starting with ID
-                const inputs = document.querySelectorAll(`[id^="${id}-"]`);
-                let url = window.location.origin + path;
-                let options = { method: method };
-
-                if (method === 'GET') {
-                    const params = new URLSearchParams();
-                    inputs.forEach(input => {
-                        const paramName = input.id.split('-').pop();
-                        if (input.value) params.append(paramName, input.value);
-                    });
-                    url += "?" + params.toString();
+                const res = await fetch('/api/create?version=v2');
+                const data = await res.json();
+                
+                if (data.email) {
+                    currentEmail = data.email;
+                    localStorage.setItem('kg_email', currentEmail);
+                    display.value = currentEmail;
+                    renderInbox([]); // Clear inbox
+                    refreshInbox(); // First check
                 } else {
-                    const formData = new FormData();
-                    inputs.forEach(input => {
-                        const paramName = input.id.split('-').pop();
-                        if (input.type === 'file') {
-                            if (input.files[0]) formData.append(paramName, input.files[0]);
-                        } else {
-                            if (input.value) formData.append(paramName, input.value);
-                        }
-                    });
-                    options.body = formData;
+                    display.value = "Error generating.";
                 }
-
-                const res = await fetch(url, options);
-                const contentType = res.headers.get("content-type");
-                const endTime = performance.now();
-                timeLabel.innerText = `${(endTime - startTime).toFixed(0)}ms`;
-
-                statusLabel.innerText = res.status + " " + res.statusText;
-                statusLabel.className = res.ok ? "text-green-500" : "text-red-500";
-
-                if (contentType && contentType.includes("application/json")) {
-                    const json = await res.json();
-                    
-                    // AUTO-RENDER LOGIC
-                    if (json.image_url) {
-                        const isVideo = json.image_url.includes(".mp4") || json.image_url.includes("model=veo") || json.image_url.includes("model=seedance");
-                        
-                        if (isVideo) {
-                             contentDiv.innerHTML = `
-                                <div class="flex flex-col gap-4 items-center">
-                                    <video controls autoplay loop class="rounded-lg border border-gray-700 w-full max-h-80 object-cover">
-                                        <source src="${json.image_url}" type="video/mp4">
-                                        Your browser does not support the video tag.
-                                    </video>
-                                    <div class="flex gap-2">
-                                        <a href="${json.image_url}" target="_blank" class="px-3 py-1 bg-blue-600 rounded text-xs text-white hover:bg-blue-500">Full Video</a>
-                                        <button onclick="navigator.clipboard.writeText('${json.image_url}')" class="px-3 py-1 bg-gray-700 rounded text-xs text-gray-300 hover:text-white">Copy URL</button>
-                                    </div>
-                                    <details class="w-full">
-                                        <summary class="text-[10px] text-gray-500 cursor-pointer">Raw JSON</summary>
-                                        <pre class="mt-2 text-xs text-gray-400 overflow-auto">${JSON.stringify(json, null, 2)}</pre>
-                                    </details>
-                                </div>`;
-                        } else {
-                            contentDiv.innerHTML = `
-                                <div class="flex flex-col gap-4 items-center">
-                                    <img src="${json.image_url}" class="rounded-lg border border-gray-700 w-full max-h-80 object-contain bg-black/50">
-                                    <div class="flex gap-2">
-                                        <a href="${json.image_url}" download="generated_image" class="px-3 py-1 bg-green-600 rounded text-xs text-white hover:bg-green-500">Download</a>
-                                        <button onclick="navigator.clipboard.writeText('${json.image_url}')" class="px-3 py-1 bg-gray-700 rounded text-xs text-gray-300 hover:text-white">Copy URL</button>
-                                    </div>
-                                    <details class="w-full">
-                                        <summary class="text-[10px] text-gray-500 cursor-pointer">Raw JSON</summary>
-                                        <pre class="mt-2 text-xs text-gray-400 overflow-auto">${JSON.stringify(json, null, 2)}</pre>
-                                    </details>
-                                </div>`;
-                        }
-                    } else {
-                        // Regular JSON (Chat)
-                        contentDiv.innerHTML = `<pre><code class="language-json text-xs">${JSON.stringify(json, null, 2)}</code></pre>`;
-                        hljs.highlightElement(contentDiv.querySelector('code'));
-                    }
-                } else {
-                    // Handle Binary/Image
-                    const blob = await res.blob();
-                    const imgUrl = URL.createObjectURL(blob);
-                    contentDiv.innerHTML = `
-                        <div class="flex flex-col gap-2 items-center">
-                            <img src="${imgUrl}" class="rounded-lg border border-gray-700 max-h-48 object-contain">
-                            <a href="${imgUrl}" download="result" class="text-blue-400 hover:text-white text-xs underline">Download Result</a>
-                        </div>`;
-                }
-
-            } catch (err) {
-                contentDiv.innerHTML = `<pre><code class="text-red-500 text-xs">Error: ${err.message}</code></pre>`;
-                statusLabel.innerText = "ERROR";
-                statusLabel.className = "text-red-500";
+            } catch (e) {
+                display.value = "Network Error";
             } finally {
-                btn.innerText = originalText;
-                btn.disabled = false;
-                btn.classList.remove("opacity-50", "cursor-not-allowed");
+                display.classList.remove('animate-pulse');
             }
         }
 
-        // Init
-        document.addEventListener('DOMContentLoaded', () => {
-            renderPage();
-            document.getElementById('searchBar').addEventListener('input', (e) => {
-                renderPage(e.target.value.toLowerCase());
+        async function refreshInbox() {
+            if (!currentEmail) return;
+            
+            const btn = document.querySelector('button[onclick="refreshInbox()"] i');
+            btn.classList.add('animate-spin');
+
+            try {
+                const res = await fetch(`/api/inbox?email=${currentEmail}&version=v2`);
+                const data = await res.json();
+                renderInbox(data);
+            } catch (e) {
+                console.error("Inbox error", e);
+            } finally {
+                setTimeout(() => btn.classList.remove('animate-spin'), 500);
+            }
+        }
+
+        function renderInbox(messages) {
+            const list = document.getElementById('inboxList');
+            const count = document.getElementById('msgCount');
+            
+            // Handle API response format (Nekolabs specific)
+            // Sometimes it returns { status: false } if empty or list if valid
+            const mails = Array.isArray(messages) ? messages : [];
+            count.innerText = mails.length;
+
+            if (mails.length === 0) {
+                list.innerHTML = `
+                    <div class="h-full flex flex-col items-center justify-center text-[#222]">
+                        <i data-lucide="ghost" class="w-16 h-16 mb-4 opacity-50"></i>
+                        <p class="text-sm">Inbox Empty</p>
+                    </div>`;
+                lucide.createIcons();
+                return;
+            }
+
+            let html = "";
+            mails.forEach((msg, idx) => {
+                html += `
+                    <div onclick="openModal(${idx})" class="group cursor-pointer p-4 rounded-xl border border-transparent hover:bg-[#0F0F0F] hover:border-[#222] transition-all duration-200 animate-in fade-in slide-in-from-bottom-2">
+                        <div class="flex justify-between items-start mb-1">
+                            <span class="font-semibold text-sm text-white group-hover:text-blue-400 transition-colors">${msg.subject || '(No Subject)'}</span>
+                            <span class="text-[10px] text-[#444] font-mono">${msg.date || 'Now'}</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-xs text-[#666] truncate max-w-[200px]">${msg.from}</span>
+                            <i data-lucide="chevron-right" class="w-3 h-3 text-[#333] group-hover:text-white transition-colors"></i>
+                        </div>
+                    </div>
+                `;
             });
-            // Keyboard shortcut
-            document.addEventListener('keydown', (e) => {
-                if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
-                    e.preventDefault();
-                    document.getElementById('searchBar').focus();
+            
+            list.innerHTML = html;
+            lucide.createIcons();
+            
+            // Store for modal
+            window.currentMessages = mails;
+        }
+
+        // --- UTILS ---
+
+        function copyEmail() {
+            const email = document.getElementById('emailDisplay').value;
+            if (!email || email.includes('...')) return;
+            
+            navigator.clipboard.writeText(email);
+            const feedback = document.getElementById('copyFeedback');
+            feedback.style.opacity = '1';
+            setTimeout(() => feedback.style.opacity = '0', 1500);
+        }
+
+        function openModal(idx) {
+            const msg = window.currentMessages[idx];
+            document.getElementById('modalSubject').innerText = msg.subject || '(No Subject)';
+            document.getElementById('modalFrom').innerText = msg.from;
+            document.getElementById('modalDate').innerText = msg.date || '';
+            
+            // Handle body (text or html)
+            const bodyDiv = document.getElementById('modalBody');
+            if (msg.html) {
+                bodyDiv.innerHTML = msg.html;
+            } else {
+                bodyDiv.innerText = msg.text || '(No Content)';
+            }
+
+            const modal = document.getElementById('mailModal');
+            const content = document.getElementById('modalContent');
+            modal.classList.remove('hidden');
+            // Small delay for transition
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                content.classList.remove('scale-95');
+                content.classList.add('scale-100');
+            }, 10);
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('mailModal');
+            const content = document.getElementById('modalContent');
+            
+            modal.classList.add('opacity-0');
+            content.classList.remove('scale-100');
+            content.classList.add('scale-95');
+            
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 300);
+        }
+
+        // --- AUTO REFRESH LOOP ---
+        function startTimer() {
+            const el = document.getElementById('timer');
+            setInterval(() => {
+                countdown--;
+                if (countdown <= 0) {
+                    refreshInbox();
+                    countdown = 5;
                 }
-            });
-        });
+                el.innerText = countdown;
+            }, 1000);
+        }
+
+        // --- INIT ---
+        window.onload = () => {
+            if (currentEmail) {
+                document.getElementById('emailDisplay').value = currentEmail;
+                refreshInbox();
+            } else {
+                generateEmail();
+            }
+            startTimer();
+        };
+
     </script>
 </body>
 </html>

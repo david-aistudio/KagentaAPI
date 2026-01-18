@@ -1,26 +1,24 @@
 from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
-from app.routers import native, tools
+from app.routers import mail
 import uvicorn
 import os
 
 # Disable default Swagger/ReDoc
 app = FastAPI(
-    title="Kagenta API",
-    description="The Native AI & Tools Engine",
-    version="8.0.0-ONYX",
-    docs_url=None, # SWAGGER KILLED
-    redoc_url=None # REDOC KILLED
+    title="KagentaMail",
+    description="Premium Disposable Email Service",
+    version="1.0.0-ONYX",
+    docs_url=None, 
+    redoc_url=None
 )
 
-# Register Routers
-app.include_router(native.router)
-app.include_router(tools.router)
+# Register Mail Router
+app.include_router(mail.router)
 
 @app.get("/", response_class=HTMLResponse)
 async def root():
-    # Read the HTML template
     file_path = os.path.join(os.path.dirname(__file__), "app/templates/index.html")
     with open(file_path, "r") as f:
         return f.read()
