@@ -40,4 +40,14 @@ class NekolabsService:
         """Check inbox (v2 engine)"""
         return await self._get(f"/tools/tempmail/v2/inbox?email={email}")
 
+    # --- AI RAG CHAT ---
+    async def chat_copilot(self, message: str):
+        return await self._get(f"/text.gen/copilot?message={message}")
+
+    async def chat_gpt5(self, message: str):
+        return await self._get(f"/text.gen/gpt/5-nano?message={message}")
+
+    async def chat_perplexity(self, message: str):
+        return await self._get(f"/text.gen/perplexity?message={message}")
+
 nekolabs = NekolabsService()
