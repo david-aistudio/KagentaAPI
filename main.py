@@ -1,21 +1,22 @@
 from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
-from app.routers import native
+from app.routers import native, tools
 import uvicorn
 import os
 
 # Disable default Swagger/ReDoc
 app = FastAPI(
     title="Kagenta API",
-    description="The Native AI Engine",
-    version="4.1.0-ULTIMATE",
+    description="The Native AI & Tools Engine",
+    version="8.0.0-ONYX",
     docs_url=None, # SWAGGER KILLED
     redoc_url=None # REDOC KILLED
 )
 
-# Register Native Router Only
+# Register Routers
 app.include_router(native.router)
+app.include_router(tools.router)
 
 @app.get("/", response_class=HTMLResponse)
 async def root():
