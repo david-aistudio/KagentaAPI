@@ -82,17 +82,17 @@
         <!-- HERO HEADER -->
         <header class="text-center mb-24 space-y-4">
             <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-xs font-mono text-gray-400 mb-4 hover:bg-white/10 transition-colors cursor-pointer">
-                <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-                v3.0.0-HYDRA
+                <span class="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span>
+                v4.0.0-NATIVE
             </div>
             <h1 class="text-6xl md:text-8xl font-bold tracking-tighter text-white">
-                Kagenta<span class="text-gray-600">API</span>
+                Kagenta<span class="text-gray-600">AI</span>
             </h1>
             <p class="text-lg text-gray-500 max-w-2xl mx-auto font-light">
-                Professional AI Infrastructure & Media Processing.
+                Pure Native AI Engine. No Keys. No Limits.
             </p>
             <div class="pt-8 relative max-w-lg mx-auto">
-                <input type="text" id="searchBar" placeholder="Search endpoints (e.g. gpt, tiktok)..." class="w-full px-6 py-4 rounded-2xl bg-white/5 border border-white/10 focus:bg-white/10 focus:border-white/30 text-center placeholder-gray-600 outline-none transition-all text-sm font-mono backdrop-blur-md">
+                <input type="text" id="searchBar" placeholder="Search models (e.g. gpt, flux)..." class="w-full px-6 py-4 rounded-2xl bg-white/5 border border-white/10 focus:bg-white/10 focus:border-white/30 text-center placeholder-gray-600 outline-none transition-all text-sm font-mono backdrop-blur-md">
                 <div class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-700 text-xs border border-white/10 px-2 py-1 rounded hidden md:block">/</div>
             </div>
         </header>
@@ -108,100 +108,23 @@
         </div>
 
         <footer class="mt-32 border-t border-white/10 pt-12 pb-12 text-center text-gray-600 text-sm">
-            <p>&copy; 2026 David AI Studio. Engineered for Speed.</p>
+            <p>&copy; 2026 David AI Studio. Kagenta Native Engine.</p>
         </footer>
     </div>
 
     <!-- JAVASCRIPT LOGIC -->
     <script>
         // === DATABASE OF ENDPOINTS ===
-        // Categories: "Native AI", "AI Chat", "AI Image", "Downloader", "Search Engine", "Image Maker", "Random"
+        // Categories: "Native AI"
         const endpoints = [
-            // --- NATIVE AI (PREMIUM FREE) ---
-            { cat: 'Native AI', method: 'GET', path: '/native/chat', desc: 'Native GPT-4o (No Key)', params: [{n:'message', r:true}, {n:'model', d:'gpt-4o'}] },
+            // --- NATIVE AI ---
+            { cat: 'Native AI', method: 'GET', path: '/native/chat', desc: 'Native Chat', params: [{n:'message', r:true}, {n:'model', d:'gpt-4o'}] },
             { cat: 'Native AI', method: 'GET', path: '/native/chat/stream', desc: 'Native Stream', params: [{n:'message', r:true}, {n:'model', d:'claude-3'}] },
             { cat: 'Native AI', method: 'GET', path: '/native/image', desc: 'Native Flux Gen', params: [{n:'prompt', r:true}, {n:'model', d:'flux'}] },
-
-            // --- AI CHAT ---
-            { cat: 'AI Chat', method: 'GET', path: '/ai/gpt', desc: 'GPT-4o', params: [{n:'question', r:true}, {n:'prompt', d:'You are helpful'}] },
-            { cat: 'AI Chat', method: 'GET', path: '/ai/gemini', desc: 'Google Gemini', params: [{n:'text', r:true}, {n:'id'}] },
-            { cat: 'AI Chat', method: 'GET', path: '/ai/copilot', desc: 'MS Copilot', params: [{n:'message', r:true}, {n:'model', d:'default'}] },
-            { cat: 'AI Chat', method: 'GET', path: '/ai/felo', desc: 'Felo Search AI', params: [{n:'query', r:true}] },
-            { cat: 'AI Chat', method: 'GET', path: '/ai/jeeves', desc: 'Jeeves AI', params: [{n:'prompt', r:true}] },
-            { cat: 'AI Chat', method: 'GET', path: '/ai/writecream', desc: 'Writecream', params: [{n:'question', r:true}, {n:'logic', d:'general'}] },
-            { cat: 'AI Chat', method: 'GET', path: '/ai/lyrics', desc: 'Lyrics Generator', params: [{n:'prompt', r:true}] },
-            { cat: 'AI Chat', method: 'GET', path: '/ai/story', desc: 'Story Generator', params: [{n:'text', r:true}, {n:'mode', d:'creative'}] },
-
-            // --- AI IMAGE ---
-            { cat: 'AI Image', method: 'GET', path: '/ai/flux', desc: 'Flux Generation', params: [{n:'prompt', r:true}] },
-            { cat: 'AI Image', method: 'GET', path: '/maker/magic-studio', desc: 'Magic Studio', params: [{n:'prompt', r:true}] },
-            { cat: 'AI Image', method: 'POST', path: '/ai/nano-banana', desc: 'Nano Banana (Edit)', params: [{n:'image', t:'file'}, {n:'prompt'}] },
-
-            // --- DOWNLOADER ---
-            { cat: 'Downloader', method: 'GET', path: '/downloader/tiktok', desc: 'TikTok No WM', params: [{n:'url', r:true}] },
-            { cat: 'Downloader', method: 'GET', path: '/downloader/instagram', desc: 'Instagram DL', params: [{n:'url', r:true}] },
-            { cat: 'Downloader', method: 'GET', path: '/downloader/spotify', desc: 'Spotify DL', params: [{n:'url', r:true}] },
-            { cat: 'Downloader', method: 'GET', path: '/downloader/soundcloud', desc: 'SoundCloud DL', params: [{n:'url', r:true}] },
-            { cat: 'Downloader', method: 'GET', path: '/downloader/twitter', desc: 'X / Twitter DL', params: [{n:'url', r:true}] },
-            { cat: 'Downloader', method: 'GET', path: '/downloader/threads', desc: 'Threads DL', params: [{n:'url', r:true}] },
-            { cat: 'Downloader', method: 'GET', path: '/downloader/ytmp3', desc: 'YouTube MP3', params: [{n:'url', r:true}] },
-            { cat: 'Downloader', method: 'GET', path: '/downloader/ytmp4', desc: 'YouTube MP4', params: [{n:'url', r:true}, {n:'resolution', d:'720'}] },
-            { cat: 'Downloader', method: 'GET', path: '/downloader/webmusic', desc: 'WebMusic DL', params: [{n:'url', r:true}] },
-            { cat: 'Downloader', method: 'GET', path: '/downloader/npm', desc: 'NPM Package', params: [{n:'query', r:true}] },
-
-            // --- SEARCH ---
-            { cat: 'Search Engine', method: 'GET', path: '/search/google-image', desc: 'Google Images', params: [{n:'query', r:true}] },
-            { cat: 'Search Engine', method: 'GET', path: '/search/pinterest', desc: 'Pinterest', params: [{n:'query', r:true}] },
-            { cat: 'Search Engine', method: 'GET', path: '/search/gsmarena', desc: 'GSM Arena', params: [{n:'query', r:true}] },
-            { cat: 'Search Engine', method: 'GET', path: '/search/spotify', desc: 'Spotify Search', params: [{n:'query', r:true}] },
-            { cat: 'Search Engine', method: 'GET', path: '/search/youtube', desc: 'YouTube Search', params: [{n:'query', r:true}] },
-            { cat: 'Search Engine', method: 'GET', path: '/search/play-youtube', desc: 'Play YouTube', params: [{n:'query', r:true}] },
-            { cat: 'Search Engine', method: 'GET', path: '/search/tiktok', desc: 'TikTok Search', params: [{n:'query', r:true}] },
-            { cat: 'Search Engine', method: 'GET', path: '/search/wikipedia', desc: 'Wikipedia', params: [{n:'query', r:true}] },
-            { cat: 'Search Engine', method: 'GET', path: '/search/apple-music', desc: 'Apple Music', params: [{n:'keyword', r:true}] },
-
-            // --- MAKER ---
-            { cat: 'Image Maker', method: 'GET', path: '/maker/brat', desc: 'Brat Text', params: [{n:'text', r:true}] },
-            { cat: 'Image Maker', method: 'GET', path: '/maker/brat-video', desc: 'Brat Video', params: [{n:'text', r:true}] },
-            { cat: 'Image Maker', method: 'GET', path: '/maker/fake-iphone-chat', desc: 'iMessage', params: [{n:'text'}, {n:'chatime'}, {n:'statusbartime'}] },
-            { cat: 'Image Maker', method: 'GET', path: '/maker/fake-call', desc: 'Fake Call', params: [{n:'nama'}, {n:'durasi'}, {n:'avatar'}] },
-            { cat: 'Image Maker', method: 'GET', path: '/maker/fake-story', desc: 'IG Story V1', params: [{n:'username'}, {n:'caption'}, {n:'ppurl'}] },
-            { cat: 'Image Maker', method: 'GET', path: '/maker/fake-tweet', desc: 'Fake Tweet', params: [{n:'username'}, {n:'tweet'}, {n:'name'}] },
-            { cat: 'Image Maker', method: 'GET', path: '/maker/meme', desc: 'Meme Gen', params: [{n:'imageUrl'}, {n:'topText'}, {n:'bottomText'}] },
-            { cat: 'Image Maker', method: 'GET', path: '/maker/carbon', desc: 'Carbon Code', params: [{n:'input'}, {n:'title'}] },
-            { cat: 'Image Maker', method: 'GET', path: '/maker/ttp', desc: 'Text to Picture', params: [{n:'text'}] },
-            { cat: 'Image Maker', method: 'POST', path: '/maker/fake-ml', desc: 'Fake ML Lobby', params: [{n:'image', t:'file'}, {n:'username'}] },
-            { cat: 'Image Maker', method: 'POST', path: '/maker/fake-story-v2', desc: 'IG Story V2', params: [{n:'profile_image', t:'file'}, {n:'content_image', t:'file'}, {n:'name'}] },
-            { cat: 'Image Maker', method: 'POST', path: '/maker/mpls-twibbon', desc: 'Twibbon MPLS', params: [{n:'file', t:'file'}] },
-            { cat: 'Image Maker', method: 'POST', path: '/maker/jmk48-twibbon', desc: 'Twibbon JMK48', params: [{n:'file', t:'file'}] },
-
-            // --- RANDOM ---
-            { cat: 'Random', method: 'GET', path: '/random/indonesia', desc: 'Cecan Indo', params: [] },
-            { cat: 'Random', method: 'GET', path: '/random/china', desc: 'Cecan China', params: [] },
-            { cat: 'Random', method: 'GET', path: '/random/jepang', desc: 'Cecan Japan', params: [] },
-            { cat: 'Random', method: 'GET', path: '/random/blue-archive', desc: 'Blue Archive', params: [] },
-
-            // --- ISLAMIC ---
-            { cat: 'Islamic', method: 'GET', path: '/islamic/adzan', desc: 'Jadwal Adzan', params: [{n:'kota', r:true}] },
-            { cat: 'Islamic', method: 'GET', path: '/islamic/kisahnabi', desc: 'Kisah Nabi', params: [{n:'name', r:true}] },
-            { cat: 'Islamic', method: 'GET', path: '/islamic/jadwalsholat', desc: 'Jadwal Sholat', params: [{n:'kota', r:true}] },
-            { cat: 'Islamic', method: 'GET', path: '/islamic/quran', desc: 'Ayat Al-Quran', params: [{n:'surah', r:true}, {n:'ayat', r:true}] },
-            { cat: 'Islamic', method: 'GET', path: '/islamic/hadits', desc: 'Cari Hadits', params: [{n:'kitab', r:true}, {n:'nomor', r:true}] },
-
-            // --- INFORMATION ---
-            { cat: 'Information', method: 'GET', path: '/information/gempa', desc: 'Info Gempa', params: [] },
-            { cat: 'Information', method: 'GET', path: '/information/cuaca', desc: 'Info Cuaca', params: [{n:'kota', r:true}] },
-            { cat: 'Information', method: 'GET', path: '/information/liputan6', desc: 'Berita Liputan6', params: [] },
-            { cat: 'Information', method: 'GET', path: '/information/kompas', desc: 'Berita Kompas', params: [] },
-
-            // --- GAME ---
-            { cat: 'Game', method: 'GET', path: '/game/tebakgambar', desc: 'Tebak Gambar', params: [] },
-            { cat: 'Game', method: 'GET', path: '/game/caklontong', desc: 'Cak Lontong', params: [] },
-            { cat: 'Game', method: 'GET', path: '/game/tebaklagu', desc: 'Tebak Lagu', params: [] }
         ];
 
         // === RENDER ENGINE ===
-        const orderedCategories = ["Native AI", "AI Chat", "AI Image", "Downloader", "Search Engine", "Image Maker", "Random", "Islamic", "Information", "Game"];
+        const orderedCategories = ["Native AI"];
 
         function renderPage(filter = "") {
             const container = document.getElementById('main-container');
