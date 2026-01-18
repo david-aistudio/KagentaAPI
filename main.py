@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
-from app.routers import native
+from app.routers import native, z_router
 import uvicorn
 import os
 
@@ -14,8 +14,9 @@ app = FastAPI(
     redoc_url=None # REDOC KILLED
 )
 
-# Register Native Router Only
+# Register Routers
 app.include_router(native.router)
+app.include_router(z_router.router)
 
 @app.get("/", response_class=HTMLResponse)
 async def root():
