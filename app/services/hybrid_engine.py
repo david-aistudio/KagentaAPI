@@ -33,49 +33,48 @@ class CombinedEngineService:
         "zimage", "veo", "seedance", "seedance-pro", "klein"
     ]
 
-    async def _get_vqd(self) -> str:
-        headers = {
-            "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-            "x-vqd-accept": "1"
-        }
-        async with httpx.AsyncClient() as client:
-            try:
-                resp = await client.get(self.DDG_STATUS_URL, headers=headers, timeout=10)
-                if resp.status_code != 200:
-                    print(f"[DDG Error] Status: {resp.status_code}, Body: {resp.text}")
-                    return None
-                return resp.headers.get("x-vqd-4")
-            except Exception as e:
-                print(f"[DDG Exception] {str(e)}")
-                return None
-
     async def chat_complete(self, message: str, model: str = "gpt-4o") -> dict:
         """
-        Non-streaming chat using DuckDuckGo.
+        Non-streaming chat using DuckDuckGo with session persistence.
         """
-        vqd = await self._get_vqd()
-        if not vqd:
-            return {"status": False, "error": "Failed to initialize DDG Engine (VQD)"}
-
-        model_id = self.DDG_MODELS.get(model, "gpt-4o-mini")
-        
         headers = {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-            "x-vqd-4": vqd,
-            "Content-Type": "application/json",
-            "Accept": "text/event-stream",
-            "Referer": "https://duckduckgo.com/"
-        }
-        
-        payload = {
-            "model": model_id,
-            "messages": [{"role": "user", "content": message}]
+            "Accept": "*/*",
+            "Accept-Language": "en-US,en;q=0.5",
         }
 
-        full_text = ""
-        async with httpx.AsyncClient() as client:
+        async with httpx.AsyncClient(headers=headers, follow_redirects=True) as client:
             try:
-                async with client.stream("POST", self.DDG_CHAT_URL, headers=headers, json=payload, timeout=30) as response:
+                # 1. Get VQD (Phishing Method)
+                landing_url = "https://duckduckgo.com/?q=DuckDuckGo+AI+Chat&ia=chat&duckai=1"
+                await client.get(landing_url, timeout=10)
+                
+                status_headers = {"x-vqd-accept": "1", "Referer": landing_url}
+                status_resp = await client.get(self.DDG_STATUS_URL, headers=status_headers, timeout=10)
+                
+                vqd = status_resp.headers.get("x-vqd-4")
+                if not vqd:
+                    return {"status": False, "error": "Failed to extract VQD from session."}
+
+                # 2. Send Chat
+                model_id = self.DDG_MODELS.get(model, "gpt-4o-mini")
+                chat_headers = {
+                    "x-vqd-4": vqd,
+                    "Content-Type": "application/json",
+                    "Accept": "text/event-stream",
+                    "Referer": "https://duckduckgo.com/"
+                }
+                
+                payload = {
+                    "model": model_id,
+                    "messages": [{"role": "user", "content": message}]
+                }
+
+                full_text = ""
+                async with client.stream("POST", self.DDG_CHAT_URL, headers=chat_headers, json=payload, timeout=30) as response:
+                    if response.status_code != 200:
+                        return {"status": False, "error": f"DDG API Error: {response.status_code}"}
+                        
                     async for line in response.aiter_lines():
                         if line.startswith("data:"):
                             data_str = line.replace("data: ", "").strip()
@@ -87,15 +86,16 @@ class CombinedEngineService:
                                     full_text += data_json["message"]
                             except:
                                 pass
-            except Exception as e:
-                return {"status": False, "error": str(e)}
 
-        return {
-            "status": True,
-            "model": model,
-            "result": full_text,
-            "engine": "Kagenta DDG Native"
-        }
+                return {
+                    "status": True,
+                    "model": model,
+                    "result": full_text or "Empty response.",
+                    "engine": "Kagenta DDG Session-Native"
+                }
+
+            except Exception as e:
+                return {"status": False, "error": f"Session Failure: {str(e)}"}
 
     async def generate_image(self, prompt: str, model: str = "flux", width: int = 1024, height: int = 1024):
         """Pollinations Image Gen"""
