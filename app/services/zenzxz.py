@@ -200,4 +200,45 @@ class ZenzxzService:
     async def random_indonesia(self): return await self._get("random", "indonesia")
     async def random_jepang(self): return await self._get("random", "jepang")
 
+    # ================= ISLAMIC =================
+    async def adzan(self, kota: str):
+        return await self._get("islamic", "adzan", {"kota": kota})
+
+    async def kisah_nabi(self, name: str):
+        return await self._get("islamic", "kisahnabi", {"name": name})
+
+    async def jadwal_sholat(self, kota: str):
+        return await self._get("islamic", "jadwalsholat", {"kota": kota})
+
+    async def quran(self, surah: str, ayat: str):
+        return await self._get("islamic", "quran", {"surah": surah, "ayat": ayat})
+
+    async def hadits(self, kitab: str, nomor: str):
+        return await self._get("islamic", "hadits", {"kitab": kitab, "nomor": nomor})
+
+
+    # ================= INFORMATION =================
+    async def gempa(self):
+        return await self._get("information", "gempa")
+
+    async def cuaca(self, kota: str):
+        return await self._get("information", "cuaca", {"kota": kota})
+
+    async def liputan6(self):
+        return await self._get("information", "liputan6")
+
+    async def kompas(self):
+        return await self._get("information", "kompas")
+
+
+    # ================= GAME =================
+    async def tebak_gambar(self):
+        return await self._get("game", "tebakgambar")
+
+    async def cak_lontong(self):
+        return await self._get("game", "caklontong")
+
+    async def tebak_lagu(self):
+        return await self._get("game", "tebaklagu")
+
 zenzxz_service = ZenzxzService()

@@ -174,11 +174,29 @@
             { cat: 'Random', method: 'GET', path: '/random/indonesia', desc: 'Cecan Indo', params: [] },
             { cat: 'Random', method: 'GET', path: '/random/china', desc: 'Cecan China', params: [] },
             { cat: 'Random', method: 'GET', path: '/random/jepang', desc: 'Cecan Japan', params: [] },
-            { cat: 'Random', method: 'GET', path: '/random/blue-archive', desc: 'Blue Archive', params: [] }
+            { cat: 'Random', method: 'GET', path: '/random/blue-archive', desc: 'Blue Archive', params: [] },
+
+            // --- ISLAMIC ---
+            { cat: 'Islamic', method: 'GET', path: '/islamic/adzan', desc: 'Jadwal Adzan', params: [{n:'kota', r:true}] },
+            { cat: 'Islamic', method: 'GET', path: '/islamic/kisahnabi', desc: 'Kisah Nabi', params: [{n:'name', r:true}] },
+            { cat: 'Islamic', method: 'GET', path: '/islamic/jadwalsholat', desc: 'Jadwal Sholat', params: [{n:'kota', r:true}] },
+            { cat: 'Islamic', method: 'GET', path: '/islamic/quran', desc: 'Ayat Al-Quran', params: [{n:'surah', r:true}, {n:'ayat', r:true}] },
+            { cat: 'Islamic', method: 'GET', path: '/islamic/hadits', desc: 'Cari Hadits', params: [{n:'kitab', r:true}, {n:'nomor', r:true}] },
+
+            // --- INFORMATION ---
+            { cat: 'Information', method: 'GET', path: '/information/gempa', desc: 'Info Gempa', params: [] },
+            { cat: 'Information', method: 'GET', path: '/information/cuaca', desc: 'Info Cuaca', params: [{n:'kota', r:true}] },
+            { cat: 'Information', method: 'GET', path: '/information/liputan6', desc: 'Berita Liputan6', params: [] },
+            { cat: 'Information', method: 'GET', path: '/information/kompas', desc: 'Berita Kompas', params: [] },
+
+            // --- GAME ---
+            { cat: 'Game', method: 'GET', path: '/game/tebakgambar', desc: 'Tebak Gambar', params: [] },
+            { cat: 'Game', method: 'GET', path: '/game/caklontong', desc: 'Cak Lontong', params: [] },
+            { cat: 'Game', method: 'GET', path: '/game/tebaklagu', desc: 'Tebak Lagu', params: [] }
         ];
 
         // === RENDER ENGINE ===
-        const orderedCategories = ["AI Chat", "AI Image", "Downloader", "Search Engine", "Image Maker", "Random"];
+        const orderedCategories = ["AI Chat", "AI Image", "Downloader", "Search Engine", "Image Maker", "Random", "Islamic", "Information", "Game"];
 
         function renderPage(filter = "") {
             const container = document.getElementById('main-container');

@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
-from app.routers import ai, downloader, maker, search, random
+from app.routers import ai, downloader, maker, search, random, islamic, information, game
 import uvicorn
 import os
 
@@ -20,6 +20,9 @@ app.include_router(downloader.router)
 app.include_router(maker.router)
 app.include_router(search.router)
 app.include_router(random.router)
+app.include_router(islamic.router)
+app.include_router(information.router)
+app.include_router(game.router)
 
 @app.get("/", response_class=HTMLResponse)
 async def root():
