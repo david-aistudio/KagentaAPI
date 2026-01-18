@@ -211,7 +211,7 @@
         lucide.createIcons();
 
         let currentEmail = localStorage.getItem('kg_email') || '';
-        let refreshInterval;
+        let currentMessages = [];
         let countdown = 5;
 
         // --- AI LOGIC ---
@@ -234,11 +234,11 @@
 
             const id = addAiBubble("Thinking...", false, true);
 
-                            try {
-                                let model = "gpt5";
-                                
-                                const res = await fetch(`/ai/chat?message=${encodeURIComponent(msg)}&model=${model}&context=${encodeURIComponent(currentEmail)}`);
-                                const json = await res.json();                
+            try {
+                let model = "gpt5";
+                const res = await fetch(`/ai/chat?message=${encodeURIComponent(msg)}&model=${model}&context=${encodeURIComponent(currentEmail)}`);
+                const json = await res.json();
+                
                 const responseText = json.result || json.data || json.message || "I am unable to answer that right now.";
                 document.getElementById(id).innerText = responseText;
                 document.getElementById(id).classList.remove('animate-pulse', 'italic', 'text-[#666]');
@@ -252,13 +252,10 @@
             const div = document.createElement('div');
             const id = 'msg-' + Date.now();
             div.id = id;
-            
             div.className = isUser 
                 ? "bg-white text-black p-3 rounded-lg rounded-tr-none self-end max-w-[85%] ml-auto"
                 : "bg-[#1F1F1F] text-[#DDD] p-3 rounded-lg rounded-tl-none self-start max-w-[85%]";
-            
             if (isLoading) div.classList.add('animate-pulse', 'italic', 'text-[#666]');
-            
             div.innerText = text;
             container.appendChild(div);
             container.scrollTop = container.scrollHeight;
@@ -275,14 +272,13 @@
             try {
                 const res = await fetch('/api/create?version=v2');
                 const data = await res.json();
-                
-                // FIXED: Support result.email structure
                 const email = data.result?.email || data.email;
                 
                 if (email) {
                     currentEmail = email;
                     localStorage.setItem('kg_email', currentEmail);
                     display.value = currentEmail;
+                    currentMessages = [];
                     renderInbox([]); 
                     refreshInbox();
                 } else {
@@ -304,7 +300,13 @@
             try {
                 const res = await fetch(`/api/inbox?email=${currentEmail}&version=v2`);
                 const data = await res.json();
-                renderInbox(data);
+                
+                const newMails = Array.isArray(data.result) ? data.result : (Array.isArray(data) ? data : []);
+                
+                if (JSON.stringify(newMails) !== JSON.stringify(currentMessages)) {
+                    currentMessages = newMails;
+                    renderInbox(newMails);
+                }
             } catch (e) {
                 console.error("Inbox error", e);
             } finally {
@@ -312,12 +314,9 @@
             }
         }
 
-        function renderInbox(data) {
+        function renderInbox(mails) {
             const list = document.getElementById('inboxList');
             const count = document.getElementById('msgCount');
-            
-            // FIXED: Handle result array
-            const mails = Array.isArray(data.result) ? data.result : (Array.isArray(data) ? data : []);
             count.innerText = mails.length;
 
             if (mails.length === 0) {
@@ -333,7 +332,7 @@
             let html = "";
             mails.forEach((msg, idx) => {
                 html += `
-                    <div onclick="openModal(${idx})" class="group cursor-pointer p-4 rounded-xl border border-transparent hover:bg-[#0F0F0F] hover:border-[#222] transition-all duration-200 animate-in fade-in slide-in-from-bottom-2">
+                    <div onclick="openModal(${idx})" class="group cursor-pointer p-4 rounded-xl border border-transparent bg-[#0A0A0A] hover:bg-[#0F0F0F] hover:border-[#222] transition-all duration-200">
                         <div class="flex justify-between items-start mb-1">
                             <span class="font-semibold text-sm text-white group-hover:text-blue-400 transition-colors">${msg.subject || '(No Subject)'}</span>
                             <span class="text-[10px] text-[#444] font-mono">${msg.date || 'Now'}</span>
@@ -348,15 +347,11 @@
             
             list.innerHTML = html;
             lucide.createIcons();
-            window.currentMessages = mails;
         }
-
-        // --- UTILS ---
 
         function copyEmail() {
             const email = document.getElementById('emailDisplay').value;
             if (!email || email.includes('...')) return;
-            
             navigator.clipboard.writeText(email);
             const feedback = document.getElementById('copyFeedback');
             feedback.style.opacity = '1';
@@ -364,18 +359,14 @@
         }
 
         function openModal(idx) {
-            const msg = window.currentMessages[idx];
+            const msg = currentMessages[idx];
+            if (!msg) return;
             document.getElementById('modalSubject').innerText = msg.subject || '(No Subject)';
             document.getElementById('modalFrom').innerText = msg.from;
             document.getElementById('modalDate').innerText = msg.date || '';
-            
             const bodyDiv = document.getElementById('modalBody');
-            if (msg.html) {
-                bodyDiv.innerHTML = msg.html;
-            } else {
-                bodyDiv.innerText = msg.text || '(No Content)';
-            }
-
+            if (msg.html) bodyDiv.innerHTML = msg.html;
+            else bodyDiv.innerText = msg.text || '(No Content)';
             const modal = document.getElementById('mailModal');
             const content = document.getElementById('modalContent');
             modal.classList.remove('hidden');
