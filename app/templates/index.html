@@ -234,13 +234,11 @@
 
             const id = addAiBubble("Thinking...", false, true);
 
-            try {
-                let model = "gpt5";
-                if (msg.toLowerCase().includes("search") || msg.toLowerCase().includes("find")) model = "perplexity";
-                
-                const res = await fetch(`/ai/chat?message=${encodeURIComponent(msg)}&model=${model}&context=${encodeURIComponent(currentEmail)}`);
-                const json = await res.json();
-                
+                            try {
+                                let model = "gpt5";
+                                
+                                const res = await fetch(`/ai/chat?message=${encodeURIComponent(msg)}&model=${model}&context=${encodeURIComponent(currentEmail)}`);
+                                const json = await res.json();                
                 const responseText = json.result || json.data || json.message || "I am unable to answer that right now.";
                 document.getElementById(id).innerText = responseText;
                 document.getElementById(id).classList.remove('animate-pulse', 'italic', 'text-[#666]');

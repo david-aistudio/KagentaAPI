@@ -13,7 +13,7 @@ SYSTEM_PROMPT = """
 @router.get("/chat")
 async def chat(
     message: str = Query(..., description="User message"),
-    model: str = Query("gpt5", description="copilot, gpt5, or perplexity"),
+    model: str = Query("gpt5", description="copilot or gpt5"),
     context: str = Query("", description="Current email context")
 ):
     """
@@ -24,7 +24,5 @@ async def chat(
     
     if model == "copilot":
         return await nekolabs.chat_copilot(full_prompt)
-    elif model == "perplexity":
-        return await nekolabs.chat_perplexity(full_prompt)
     else:
         return await nekolabs.chat_gpt5(full_prompt)

@@ -42,12 +42,22 @@ class NekolabsService:
 
     # --- AI RAG CHAT ---
     async def chat_copilot(self, message: str):
-        return await self._get(f"/text.gen/copilot?text={message}")
+        # Increased timeout for AI generation
+        headers = {"User-Agent": "Kagenta-Premium-Client/1.0"}
+        async with httpx.AsyncClient() as client:
+            try:
+                resp = await client.get(f"{self.BASE_URL}/text.gen/copilot?text={message}", headers=headers, timeout=60)
+                return resp.json()
+            except Exception as e:
+                return {"status": False, "error": str(e)}
 
     async def chat_gpt5(self, message: str):
-        return await self._get(f"/text.gen/gpt/5-nano?text={message}")
-
-    async def chat_perplexity(self, message: str):
-        return await self._get(f"/text.gen/perplexity?text={message}")
+        headers = {"User-Agent": "Kagenta-Premium-Client/1.0"}
+        async with httpx.AsyncClient() as client:
+            try:
+                resp = await client.get(f"{self.BASE_URL}/text.gen/gpt/5-nano?text={message}", headers=headers, timeout=60)
+                return resp.json()
+            except Exception as e:
+                return {"status": False, "error": str(e)}
 
 nekolabs = NekolabsService()
