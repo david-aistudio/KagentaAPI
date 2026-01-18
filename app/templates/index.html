@@ -114,25 +114,18 @@
 
     <!-- JAVASCRIPT LOGIC -->
     <script>
-        // === DYNAMIC MODEL CONFIG ===
+        // === HYBRID MODEL CONFIG ===
         const models = {
-            "OpenAI": ["openai", "openai-fast", "openai-large", "openai-reasoning"],
-            "Claude": ["claude", "claude-fast", "claude-large"],
-            "Gemini": ["gemini", "gemini-fast", "gemini-large", "gemini-search"],
-            "Mistral": ["mistral", "mistral-large"],
-            "DeepSeek": ["deepseek", "deepseek-coder"],
-            "Llama": ["llama"],
-            "Other": ["grok", "minimax", "glm", "qwen-coder"],
-            "Image": ["flux", "flux-realism", "flux-anime", "flux-3d", "turbo", "midijourney"]
+            "Chat": ["gpt-4o", "claude-3", "llama-3", "mistral", "o3-mini"],
+            "Image": ["flux", "flux-realism", "flux-anime", "flux-3d", "turbo", "midijourney", "stable-diffusion"]
         };
 
         // === DATABASE OF ENDPOINTS ===
         const endpoints = [
-            // --- CHAT ENDPOINTS ---
-            { cat: 'Native Chat', method: 'GET', path: '/native/chat', desc: 'Chat (JSON)', params: [{n:'message', r:true}, {n:'model', t:'select', o:'chat'}, {n:'system'}] },
-            { cat: 'Native Chat', method: 'GET', path: '/native/chat/stream', desc: 'Chat (Stream)', params: [{n:'message', r:true}, {n:'model', t:'select', o:'chat'}, {n:'system'}] },
+            // --- CHAT (DDG) ---
+            { cat: 'Native Chat', method: 'GET', path: '/native/chat', desc: 'Chat (DDG Engine)', params: [{n:'message', r:true}, {n:'model', t:'select', o:'chat'}] },
             
-            // --- IMAGE ENDPOINTS ---
+            // --- IMAGE (POLLINATIONS) ---
             { cat: 'Native Image', method: 'GET', path: '/native/image', desc: 'Image Gen', params: [{n:'prompt', r:true}, {n:'model', t:'select', o:'image'}, {n:'width', d:'1024'}, {n:'height', d:'1024'}] },
         ];
 
@@ -151,14 +144,7 @@
                 if (type === 'image') {
                     models.Image.forEach(m => options += `<option value="${m}">${m}</option>`);
                 } else {
-                    // Flatten chat models
-                    Object.keys(models).forEach(key => {
-                        if (key !== 'Image') {
-                            options += `<optgroup label="${key}">`;
-                            models[key].forEach(m => options += `<option value="${m}">${m}</option>`);
-                            options += `</optgroup>`;
-                        }
-                    });
+                    models.Chat.forEach(m => options += `<option value="${m}">${m}</option>`);
                 }
                 return options;
             };
