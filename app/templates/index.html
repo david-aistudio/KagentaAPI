@@ -207,206 +207,500 @@
         </button>
     </div>
 
-    <script>
-        lucide.createIcons();
+        <script>
 
-        let currentEmail = localStorage.getItem('kg_email') || '';
-        let currentMessages = [];
-        let countdown = 5;
-
-        // --- AI LOGIC ---
-        function toggleChat() {
-            const box = document.getElementById('aiChatBox');
-            if (box.classList.contains('scale-0')) {
-                box.classList.remove('scale-0', 'opacity-0');
-            } else {
-                box.classList.add('scale-0', 'opacity-0');
-            }
-        }
-
-        async function sendAiMessage() {
-            const input = document.getElementById('aiInput');
-            const msg = input.value.trim();
-            if (!msg) return;
-
-            addAiBubble(msg, true);
-            input.value = '';
-
-            const id = addAiBubble("Thinking...", false, true);
-
-            try {
-                let model = "gpt5";
-                const res = await fetch(`/ai/chat?message=${encodeURIComponent(msg)}&model=${model}&context=${encodeURIComponent(currentEmail)}`);
-                const json = await res.json();
-                
-                const responseText = json.result || json.data || json.message || "I am unable to answer that right now.";
-                document.getElementById(id).innerText = responseText;
-                document.getElementById(id).classList.remove('animate-pulse', 'italic', 'text-[#666]');
-            } catch (e) {
-                document.getElementById(id).innerText = "Connection error.";
-            }
-        }
-
-        function addAiBubble(text, isUser, isLoading = false) {
-            const container = document.getElementById('aiMessages');
-            const div = document.createElement('div');
-            const id = 'msg-' + Date.now();
-            div.id = id;
-            div.className = isUser 
-                ? "bg-white text-black p-3 rounded-lg rounded-tr-none self-end max-w-[85%] ml-auto"
-                : "bg-[#1F1F1F] text-[#DDD] p-3 rounded-lg rounded-tl-none self-start max-w-[85%]";
-            if (isLoading) div.classList.add('animate-pulse', 'italic', 'text-[#666]');
-            div.innerText = text;
-            container.appendChild(div);
-            container.scrollTop = container.scrollHeight;
-            return id;
-        }
-
-        // --- CORE FUNCTIONS ---
-
-        async function generateEmail() {
-            const display = document.getElementById('emailDisplay');
-            display.value = "Generating...";
-            display.classList.add('animate-pulse');
-            
-            try {
-                const res = await fetch('/api/create?version=v2');
-                const data = await res.json();
-                const email = data.result?.email || data.email;
-                
-                if (email) {
-                    currentEmail = email;
-                    localStorage.setItem('kg_email', currentEmail);
-                    display.value = currentEmail;
-                    currentMessages = [];
-                    renderInbox([]); 
-                    refreshInbox();
-                } else {
-                    display.value = "Error generating.";
-                }
-            } catch (e) {
-                display.value = "Network Error";
-            } finally {
-                display.classList.remove('animate-pulse');
-            }
-        }
-
-        async function refreshInbox() {
-            if (!currentEmail) return;
-            
-            const btn = document.querySelector('button[onclick="refreshInbox()"] i');
-            if(btn) btn.classList.add('animate-spin');
-
-            try {
-                const res = await fetch(`/api/inbox?email=${currentEmail}&version=v2`);
-                const data = await res.json();
-                
-                const newMails = Array.isArray(data.result) ? data.result : (Array.isArray(data) ? data : []);
-                
-                if (JSON.stringify(newMails) !== JSON.stringify(currentMessages)) {
-                    currentMessages = newMails;
-                    renderInbox(newMails);
-                }
-            } catch (e) {
-                console.error("Inbox error", e);
-            } finally {
-                if(btn) setTimeout(() => btn.classList.remove('animate-spin'), 500);
-            }
-        }
-
-        function renderInbox(mails) {
-            const list = document.getElementById('inboxList');
-            const count = document.getElementById('msgCount');
-            count.innerText = mails.length;
-
-            if (mails.length === 0) {
-                list.innerHTML = `
-                    <div class="h-full flex flex-col items-center justify-center text-[#222]">
-                        <i data-lucide="ghost" class="w-16 h-16 mb-4 opacity-50"></i>
-                        <p class="text-sm">Inbox Empty</p>
-                    </div>`;
-                lucide.createIcons();
-                return;
-            }
-
-            let html = "";
-            mails.forEach((msg, idx) => {
-                html += `
-                    <div onclick="openModal(${idx})" class="group cursor-pointer p-4 rounded-xl border border-transparent bg-[#0A0A0A] hover:bg-[#0F0F0F] hover:border-[#222] transition-all duration-200">
-                        <div class="flex justify-between items-start mb-1">
-                            <span class="font-semibold text-sm text-white group-hover:text-blue-400 transition-colors">${msg.subject || '(No Subject)'}</span>
-                            <span class="text-[10px] text-[#444] font-mono">${msg.date || 'Now'}</span>
-                        </div>
-                        <div class="flex justify-between items-center">
-                            <span class="text-xs text-[#666] truncate max-w-[200px]">${msg.from}</span>
-                            <i data-lucide="chevron-right" class="w-3 h-3 text-[#333] group-hover:text-white transition-colors"></i>
-                        </div>
-                    </div>
-                `;
-            });
-            
-            list.innerHTML = html;
             lucide.createIcons();
-        }
 
-        function copyEmail() {
-            const email = document.getElementById('emailDisplay').value;
-            if (!email || email.includes('...')) return;
-            navigator.clipboard.writeText(email);
-            const feedback = document.getElementById('copyFeedback');
-            feedback.style.opacity = '1';
-            setTimeout(() => feedback.style.opacity = '0', 1500);
-        }
+    
 
-        function openModal(idx) {
-            const msg = currentMessages[idx];
-            if (!msg) return;
-            document.getElementById('modalSubject').innerText = msg.subject || '(No Subject)';
-            document.getElementById('modalFrom').innerText = msg.from;
-            document.getElementById('modalDate').innerText = msg.date || '';
-            const bodyDiv = document.getElementById('modalBody');
-            if (msg.html) bodyDiv.innerHTML = msg.html;
-            else bodyDiv.innerText = msg.text || '(No Content)';
-            const modal = document.getElementById('mailModal');
-            const content = document.getElementById('modalContent');
-            modal.classList.remove('hidden');
-            setTimeout(() => {
-                modal.classList.remove('opacity-0');
-                content.classList.remove('scale-95');
-                content.classList.add('scale-100');
-            }, 10);
-        }
+            // --- STATE MANAGEMENT ---
 
-        function closeModal() {
-            const modal = document.getElementById('mailModal');
-            const content = document.getElementById('modalContent');
-            modal.classList.add('opacity-0');
-            content.classList.remove('scale-100');
-            content.classList.add('scale-95');
-            setTimeout(() => { modal.classList.add('hidden'); }, 300);
-        }
+            const STATE = {
 
-        function startTimer() {
-            const el = document.getElementById('timer');
-            setInterval(() => {
-                countdown--;
-                if (countdown <= 0) {
-                    refreshInbox();
-                    countdown = 5;
-                }
-                if(el) el.innerText = countdown;
-            }, 1000);
-        }
+                email: localStorage.getItem('kg_email') || '',
 
-        window.onload = () => {
-            if (currentEmail) {
-                document.getElementById('emailDisplay').value = currentEmail;
-                refreshInbox();
-            } else {
-                generateEmail();
+                messages: [], // Array of message objects
+
+                lastHash: '', // To detect changes
+
+                isGenerating: false,
+
+                refreshTimer: null,
+
+                countdown: 5
+
+            };
+
+    
+
+            // --- AI LOGIC ---
+
+            function toggleChat() {
+
+                const box = document.getElementById('aiChatBox');
+
+                box.classList.toggle('scale-0');
+
+                box.classList.toggle('opacity-0');
+
             }
-            startTimer();
-        };
-    </script>
+
+    
+
+            async function sendAiMessage() {
+
+                const input = document.getElementById('aiInput');
+
+                const msg = input.value.trim();
+
+                if (!msg) return;
+
+    
+
+                addAiBubble(msg, true);
+
+                input.value = '';
+
+                const id = addAiBubble("Thinking...", false, true);
+
+    
+
+                try {
+
+                    let model = "gpt5";
+
+                    if (msg.toLowerCase().includes("search")) model = "perplexity";
+
+                    
+
+                    const res = await fetch(`/ai/chat?message=${encodeURIComponent(msg)}&model=${model}&context=${encodeURIComponent(STATE.email)}`);
+
+                    const json = await res.json();
+
+                    const txt = json.result || json.data || json.message || "I am unable to answer.";
+
+                    
+
+                    const bubble = document.getElementById(id);
+
+                    bubble.innerText = txt;
+
+                    bubble.classList.remove('animate-pulse', 'italic', 'text-[#666]');
+
+                } catch (e) {
+
+                    document.getElementById(id).innerText = "Connection lost.";
+
+                }
+
+            }
+
+    
+
+            function addAiBubble(text, isUser, isLoading = false) {
+
+                const container = document.getElementById('aiMessages');
+
+                const div = document.createElement('div');
+
+                const id = 'msg-' + Date.now();
+
+                div.id = id;
+
+                div.className = isUser 
+
+                    ? "bg-white text-black p-3 rounded-lg rounded-tr-none self-end max-w-[85%] ml-auto"
+
+                    : "bg-[#1F1F1F] text-[#DDD] p-3 rounded-lg rounded-tl-none self-start max-w-[85%]";
+
+                if (isLoading) div.classList.add('animate-pulse', 'italic', 'text-[#666]');
+
+                div.innerText = text;
+
+                container.appendChild(div);
+
+                container.scrollTop = container.scrollHeight;
+
+                return id;
+
+            }
+
+    
+
+            // --- CORE LOGIC (THE BRAIN) ---
+
+    
+
+            function init() {
+
+                if (STATE.email) {
+
+                    document.getElementById('emailDisplay').value = STATE.email;
+
+                    refreshInbox();
+
+                } else {
+
+                    generateEmail();
+
+                }
+
+                startTimer();
+
+            }
+
+    
+
+            async function generateEmail() {
+
+                if (STATE.isGenerating) return;
+
+                STATE.isGenerating = true;
+
+                
+
+                const display = document.getElementById('emailDisplay');
+
+                display.value = "Generating...";
+
+                display.classList.add('animate-pulse');
+
+                
+
+                try {
+
+                    const res = await fetch('/api/create?version=v2');
+
+                    const data = await res.json();
+
+                    const newEmail = data.result?.email || data.email;
+
+                    
+
+                    if (newEmail) {
+
+                        STATE.email = newEmail;
+
+                        localStorage.setItem('kg_email', newEmail);
+
+                        display.value = newEmail;
+
+                        
+
+                        // Reset State for new email
+
+                        STATE.messages = [];
+
+                        STATE.lastHash = '';
+
+                        renderInbox(true); // Force clear render
+
+                        refreshInbox();
+
+                    } else {
+
+                        display.value = "Error. Try Again.";
+
+                    }
+
+                } catch (e) {
+
+                    display.value = "Network Error";
+
+                } finally {
+
+                    STATE.isGenerating = false;
+
+                    display.classList.remove('animate-pulse');
+
+                }
+
+            }
+
+    
+
+            async function refreshInbox() {
+
+                if (!STATE.email) return;
+
+                
+
+                // Visual feedback (Subtle)
+
+                const btnIcon = document.querySelector('button[onclick="refreshInbox()"] i');
+
+                if(btnIcon) btnIcon.classList.add('animate-spin');
+
+    
+
+                try {
+
+                    const res = await fetch(`/api/inbox?email=${STATE.email}&version=v2`);
+
+                    const data = await res.json();
+
+                    
+
+                    // Validate Data
+
+                    const incoming = Array.isArray(data.result) ? data.result : (Array.isArray(data) ? data : []);
+
+                    
+
+                    // LOGIC DEWA: State Diffing
+
+                    // Kita buat "Hash" sederhana dari konten untuk cek perubahan
+
+                    const currentHash = JSON.stringify(incoming.map(m => m.id || m.date)); 
+
+                    
+
+                    // Jika hash beda, berarti ada update. 
+
+                    // Jika incoming kosong TAPI state lama ada isi, itu mencurigakan (Network glitch?).
+
+                    // Kecuali user baru generate email, maka kosong itu wajar.
+
+                    
+
+                    if (currentHash !== STATE.lastHash) {
+
+                        // Update valid!
+
+                        STATE.messages = incoming;
+
+                        STATE.lastHash = currentHash;
+
+                        renderInbox();
+
+                    } else {
+
+                        console.log("No changes in inbox.");
+
+                    }
+
+    
+
+                } catch (e) {
+
+                    console.warn("Sync skipped due to network error", e);
+
+                    // Jangan ubah UI, biarkan pesan lama tetap tampil (Persistence)
+
+                } finally {
+
+                    if(btnIcon) setTimeout(() => btnIcon.classList.remove('animate-spin'), 500);
+
+                }
+
+            }
+
+    
+
+            function renderInbox(forceClear = false) {
+
+                const list = document.getElementById('inboxList');
+
+                const count = document.getElementById('msgCount');
+
+                
+
+                // Update counter
+
+                count.innerText = STATE.messages.length;
+
+    
+
+                // Empty State
+
+                if (STATE.messages.length === 0) {
+
+                    list.innerHTML = `
+
+                        <div class="h-full flex flex-col items-center justify-center text-[#222]">
+
+                            <i data-lucide="ghost" class="w-16 h-16 mb-4 opacity-50"></i>
+
+                            <p class="text-sm">Inbox Empty</p>
+
+                        </div>`;
+
+                    lucide.createIcons();
+
+                    return;
+
+                }
+
+    
+
+                // DOM Patching Strategy (Simplified for Vanilla JS)
+
+                // Kita rebuild HTML string, browser engine modern cukup cepat untuk ini
+
+                // selama kita tidak melakukannya setiap detik (kita sudah filter pakai Hash).
+
+                
+
+                let html = "";
+
+                STATE.messages.forEach((msg, idx) => {
+
+                    // Safety: Pastikan ID atau fallback index
+
+                    const msgId = msg.id || idx; 
+
+                    html += `
+
+                        <div onclick="openModal(${idx})" class="group cursor-pointer p-4 rounded-xl border border-transparent bg-[#0A0A0A] hover:bg-[#0F0F0F] hover:border-[#222] transition-all duration-200 mb-2">
+
+                            <div class="flex justify-between items-start mb-1">
+
+                                <span class="font-semibold text-sm text-white group-hover:text-blue-400 transition-colors line-clamp-1">${msg.subject || '(No Subject)'}</span>
+
+                                <span class="text-[10px] text-[#444] font-mono shrink-0 ml-2">${msg.date || 'Now'}</span>
+
+                            </div>
+
+                            <div class="flex justify-between items-center mt-2">
+
+                                <span class="text-xs text-[#666] truncate max-w-[200px] flex items-center gap-1">
+
+                                    <i data-lucide="user" class="w-3 h-3"></i> ${msg.from}
+
+                                </span>
+
+                                <i data-lucide="chevron-right" class="w-3 h-3 text-[#333] group-hover:text-white transition-colors"></i>
+
+                            </div>
+
+                        </div>
+
+                    `;
+
+                });
+
+                
+
+                list.innerHTML = html;
+
+                lucide.createIcons();
+
+            }
+
+    
+
+            // --- UTILS ---
+
+    
+
+            function copyEmail() {
+
+                if (!STATE.email) return;
+
+                navigator.clipboard.writeText(STATE.email);
+
+                const feedback = document.getElementById('copyFeedback');
+
+                feedback.style.opacity = '1';
+
+                setTimeout(() => feedback.style.opacity = '0', 1500);
+
+            }
+
+    
+
+            function openModal(idx) {
+
+                const msg = STATE.messages[idx];
+
+                if (!msg) return;
+
+    
+
+                document.getElementById('modalSubject').innerText = msg.subject || '(No Subject)';
+
+                document.getElementById('modalFrom').innerText = msg.from;
+
+                document.getElementById('modalDate').innerText = msg.date || '';
+
+                
+
+                const bodyDiv = document.getElementById('modalBody');
+
+                if (msg.html) bodyDiv.innerHTML = msg.html;
+
+                else bodyDiv.innerText = msg.text || '(No Content)';
+
+    
+
+                const modal = document.getElementById('mailModal');
+
+                const content = document.getElementById('modalContent');
+
+                modal.classList.remove('hidden');
+
+                // Micro-task delay for CSS transition
+
+                requestAnimationFrame(() => {
+
+                    modal.classList.remove('opacity-0');
+
+                    content.classList.remove('scale-95');
+
+                    content.classList.add('scale-100');
+
+                });
+
+            }
+
+    
+
+            function closeModal() {
+
+                const modal = document.getElementById('mailModal');
+
+                const content = document.getElementById('modalContent');
+
+                modal.classList.add('opacity-0');
+
+                content.classList.remove('scale-100');
+
+                content.classList.add('scale-95');
+
+                setTimeout(() => { modal.classList.add('hidden'); }, 300);
+
+            }
+
+    
+
+            function startTimer() {
+
+                const el = document.getElementById('timer');
+
+                setInterval(() => {
+
+                    STATE.countdown--;
+
+                    if (STATE.countdown <= 0) {
+
+                        refreshInbox();
+
+                        STATE.countdown = 5;
+
+                    }
+
+                    if(el) el.innerText = STATE.countdown;
+
+                }, 1000);
+
+            }
+
+    
+
+            // Start the Engine
+
+            window.onload = init;
+
+        </script>
 </body>
 </html>
