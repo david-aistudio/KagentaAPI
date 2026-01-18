@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 from app.routers import mail
 import uvicorn
@@ -8,14 +8,18 @@ import os
 # Disable default Swagger/ReDoc
 app = FastAPI(
     title="KagentaMail",
-    description="Premium Disposable Email Service",
-    version="1.3.0-LITE",
+    description="The Ultimate Disposable Email Experience",
+    version="2.0.0-AEGIS",
     docs_url=None, 
     redoc_url=None
 )
 
 # Register Routers
 app.include_router(mail.router)
+
+@app.get("/manifest.json")
+async def manifest():
+    return FileResponse(os.path.join(os.path.dirname(__file__), "app/templates/manifest.json"))
 
 @app.get("/", response_class=HTMLResponse)
 async def root():
