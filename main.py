@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
-from app.routers import native, z_router
+from app.routers import native
 import uvicorn
 import os
 
@@ -9,14 +9,13 @@ import os
 app = FastAPI(
     title="Kagenta API",
     description="The Native AI Engine",
-    version="4.0.0-NATIVE",
+    version="4.1.0-ULTIMATE",
     docs_url=None, # SWAGGER KILLED
     redoc_url=None # REDOC KILLED
 )
 
-# Register Routers
+# Register Native Router Only
 app.include_router(native.router)
-app.include_router(z_router.router)
 
 @app.get("/", response_class=HTMLResponse)
 async def root():

@@ -1,96 +1,117 @@
 import os
 import sys
-
-# --- MONKEY PATCH FOR VERCEL READ-ONLY FS ---
-# This must run before g4f tries to load cookie directories
-try:
-    import platformdirs
-    def mock_user_config_dir(appname=None, appauthor=None, version=None, roaming=True):
-        return "/tmp"
-    platformdirs.user_config_dir = mock_user_config_dir
-except ImportError:
-    pass
-
-# Force home dir to /tmp just in case
-os.environ["HOME"] = "/tmp"
-
-import g4f
 import asyncio
-from typing import Optional, AsyncGenerator
+import g4f
+
+# --- LEVEL 10 MONKEY PATCHING (VERCEL GOD MODE) ---
+# Memaksa seluruh operasi file G4F ke /tmp atau /dev/null
+# Ini mencegah crash "Read-only file system"
+try:
+    # Patch platformdirs
+    import platformdirs
+    def mock_dirs(*args, **kwargs): return "/tmp"
+    platformdirs.user_config_dir = mock_dirs
+    platformdirs.user_cache_dir = mock_dirs
+    platformdirs.user_data_dir = mock_dirs
+    
+    # Force Env Vars
+    os.environ["G4F_COOKIES_DIR"] = "/tmp"
+    os.environ["G4F_CACHE_DIR"] = "/tmp"
+    os.environ["XDG_CACHE_HOME"] = "/tmp"
+    os.environ["HOME"] = "/tmp"
+except:
+    pass
 
 class NativeAIService:
     """
-    Kagenta Native Engine (Powered by g4f & Pollinations)
-    The Ultimate Free AI Aggregator.
+    Kagenta Native Engine v4.1 (Ultimate Edition)
+    "The one that actually works."
     """
     
-    # Mapping friendly names to g4f model IDs
-    MODELS = {
-        "gpt-4o": "gpt-4o",
-        "gpt-4": "gpt-4",
-        "claude-3": "claude-3-haiku",
-        "llama-3": "llama-3-70b",
-        "mistral": "mistral-medium",
-        "gemini": "gemini-pro"
+    # MAPPING MODEL -> PROVIDER YANG PASTI JALAN
+    # Kita tidak pakai Auto, kita tembak provider yang terbukti "Gacor".
+    MODEL_ROUTING = {
+        "gpt-4o": g4f.Provider.Blackbox,   # Stabil, Cepat, Gratis
+        "gpt-4": g4f.Provider.DuckDuckGo,  # Backup GPT-4
+        "claude-3": g4f.Provider.Blackbox, # Blackbox punya Claude-3
+        "llama-3": g4f.Provider.DeepInfra, # Sering open
+        "gemini": g4f.Provider.Blackbox,   # Blackbox support Gemini
+        "glm-4": g4f.Provider.GLM,         # Target utama GLM
+        "mixtral": g4f.Provider.DeepInfra
     }
 
     def __init__(self):
-        # Optimizations for Serverless/CLI
+        # Matikan semua logging sampah
         g4f.debug.logging = False
         g4f.debug.version_check = False
+        # Matikan cookie loading (Vercel Killer)
         g4f.cookies.use_all_cookies = False
 
     async def chat_stream(self, message: str, model_alias: str = "gpt-4o"):
         """
-        Stream chat response using g4f.
+        Stream chat dengan Failover System.
         """
-        model_id = self.MODELS.get(model_alias, "gpt-4o")
+        # 1. Tentukan Provider Utama
+        provider = self.MODEL_ROUTING.get(model_alias, g4f.Provider.Blackbox)
+        model_id = g4f.models.gpt_4o # Default generic model ID
+        
+        # Mapping nama model user ke ID internal G4F
+        if model_alias == "glm-4":
+            model_id = "glm-4" # Custom string often works for GLM provider
+        elif "llama" in model_alias:
+            model_id = g4f.models.llama_3_1_70b
+        elif "claude" in model_alias:
+            model_id = g4f.models.claude_3_5_sonnet
         
         try:
-            # Force Blackbox for stability on Vercel
+            # EKSEKUSI STREAM
+            # Kita wrap dalam thread executor jika provider blocking, 
+            # tapi G4F punya .create yang cukup pintar sekarang.
+            
             response = g4f.ChatCompletion.create(
                 model=model_id,
-                provider=g4f.Provider.Blackbox,
+                provider=provider,
                 messages=[{"role": "user", "content": message}],
-                stream=True
+                stream=True,
+                ignore_stream=True # Force stream handling manually
             )
             
             for chunk in response:
                 if chunk:
                     yield str(chunk)
-                    await asyncio.sleep(0)
+                    await asyncio.sleep(0) # Yield control to event loop
 
         except Exception as e:
-            yield f"[Native Error]: {str(e)}"
+            # FAILOVER 1: DUCKDUCKGO (Backup Paling Aman)
+            yield f"[Primary Failed: {str(e)}]. Switching to Backup...\n"
+            try:
+                backup_response = g4f.ChatCompletion.create(
+                    model=g4f.models.gpt_4o_mini,
+                    provider=g4f.Provider.DuckDuckGo,
+                    messages=[{"role": "user", "content": message}],
+                    stream=True
+                )
+                for chunk in backup_response:
+                    if chunk:
+                        yield str(chunk)
+                        await asyncio.sleep(0)
+            except Exception as e2:
+                yield f"[Critical Error]: Backup also failed. {str(e2)}"
 
     async def chat_complete(self, message: str, model_alias: str = "gpt-4o") -> dict:
         """
-        Non-streaming chat.
+        Non-streaming chat wrapper.
         """
-        model_id = self.MODELS.get(model_alias, "gpt-4o")
-        try:
-            # Explicitly use Blackbox or DuckDuckGo to avoid cookie scanning
-            # Blackbox is usually the most robust free provider
-            provider = g4f.Provider.Blackbox
+        full_text = ""
+        async for chunk in self.chat_stream(message, model_alias):
+            full_text += chunk
             
-            response = await g4f.ChatCompletion.create_async(
-                model=model_id,
-                provider=provider,
-                messages=[{"role": "user", "content": message}]
-            )
-            return {
-                "status": True,
-                "model": model_alias,
-                "result": response,
-                "engine": "Kagenta Native (g4f:Blackbox)"
-            }
-        except Exception as e:
-            return {
-                "status": False,
-                "model": model_alias,
-                "error": str(e),
-                "engine": "Kagenta Native (g4f)"
-            }
+        return {
+            "status": True,
+            "model": model_alias,
+            "result": full_text,
+            "engine": "Kagenta Ultimate Native"
+        }
 
     # --- POLLINATIONS (Image) ---
     async def generate_image(self, prompt: str, model: str = "flux"):
