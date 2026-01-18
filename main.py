@@ -1,15 +1,17 @@
 from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
+from fastapi.staticfiles import StaticFiles
 from app.routers import ai, downloader, maker, search, random
 import uvicorn
 import os
 
+# Disable default Swagger/ReDoc
 app = FastAPI(
     title="Kagenta API",
     description="The Ultimate Nexus of Intelligence and Tools",
     version="3.0.0",
-    docs_url="/docs",
-    redoc_url=None
+    docs_url=None, # SWAGGER KILLED
+    redoc_url=None # REDOC KILLED
 )
 
 # Register All Routers
