@@ -1,36 +1,44 @@
 from fastapi import APIRouter, Query
 from fastapi.responses import StreamingResponse
-from app.services.native_ai import native_service
+from app.services.pollinations import pollinations
 
-router = APIRouter(prefix="/native", tags=["Native Engine"])
+router = APIRouter(prefix="/native", tags=["Pollinations AI"])
+
+@router.get("/models")
+async def list_models(type: str = Query("chat", description="chat or image")):
+    """Get list of available models"""
+    return await pollinations.get_models(type)
 
 @router.get("/chat")
-async def native_chat(
-    message: str = Query(..., description="Your message"),
-    model: str = Query("gpt-4o", description="Options: gpt-4o, claude-3, llama-3, mistral, o3-mini")
+async def chat(
+    message: str = Query(..., description="Message"),
+    model: str = Query("openai", description="Model ID (e.g. openai, claude, gemini, mistral)"),
+    system: str = Query("You are a helpful assistant.", description="System Prompt")
 ):
     """
-    Kagenta Native Chat (Bypassed DDG API).
-    Models: gpt-4o, claude-3, llama-3, mistral, o3-mini.
+    Native Chat (Non-Streaming)
     """
-    return await native_service.chat_complete(message, model)
+    return await pollinations.chat_complete(message, model)
 
 @router.get("/chat/stream")
-async def native_chat_stream(
-    message: str = Query(..., description="Your message"),
-    model: str = Query("gpt-4o", description="Options: gpt-4o, claude-3, llama-3, mistral, o3-mini")
+async def chat_stream(
+    message: str = Query(..., description="Message"),
+    model: str = Query("openai", description="Model ID"),
+    system: str = Query("You are a helpful assistant.", description="System Prompt")
 ):
     """
-    Stream response (Server-Sent Events)
+    Native Chat (Streaming)
     """
-    return StreamingResponse(native_service.chat_stream(message, model), media_type="text/event-stream")
+    return StreamingResponse(pollinations.chat_stream(message, model, system), media_type="text/event-stream")
 
 @router.get("/image")
-async def native_image(
+async def image(
     prompt: str = Query(..., description="Image Prompt"),
-    model: str = Query("flux", description="Options: flux, turbo")
+    model: str = Query("flux", description="Model ID (flux, turbo, etc)"),
+    width: int = 1024,
+    height: int = 1024
 ):
     """
-    Kagenta Native Image (Pollinations).
+    Native Image Generation
     """
-    return await native_service.generate_image(prompt, model)
+    return await pollinations.generate_image(prompt, model, width, height)
