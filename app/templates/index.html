@@ -115,8 +115,13 @@
     <!-- JAVASCRIPT LOGIC -->
     <script>
         // === DATABASE OF ENDPOINTS ===
-        // Categories: "AI Chat", "AI Image", "Downloader", "Search Engine", "Image Maker", "Random"
+        // Categories: "Native AI", "AI Chat", "AI Image", "Downloader", "Search Engine", "Image Maker", "Random"
         const endpoints = [
+            // --- NATIVE AI (PREMIUM FREE) ---
+            { cat: 'Native AI', method: 'GET', path: '/native/chat', desc: 'Native GPT-4o (No Key)', params: [{n:'message', r:true}, {n:'model', d:'gpt-4o'}] },
+            { cat: 'Native AI', method: 'GET', path: '/native/chat/stream', desc: 'Native Stream', params: [{n:'message', r:true}, {n:'model', d:'claude-3'}] },
+            { cat: 'Native AI', method: 'GET', path: '/native/image', desc: 'Native Flux Gen', params: [{n:'prompt', r:true}, {n:'model', d:'flux'}] },
+
             // --- AI CHAT ---
             { cat: 'AI Chat', method: 'GET', path: '/ai/gpt', desc: 'GPT-4o', params: [{n:'question', r:true}, {n:'prompt', d:'You are helpful'}] },
             { cat: 'AI Chat', method: 'GET', path: '/ai/gemini', desc: 'Google Gemini', params: [{n:'text', r:true}, {n:'id'}] },
@@ -196,7 +201,7 @@
         ];
 
         // === RENDER ENGINE ===
-        const orderedCategories = ["AI Chat", "AI Image", "Downloader", "Search Engine", "Image Maker", "Random", "Islamic", "Information", "Game"];
+        const orderedCategories = ["Native AI", "AI Chat", "AI Image", "Downloader", "Search Engine", "Image Maker", "Random", "Islamic", "Information", "Game"];
 
         function renderPage(filter = "") {
             const container = document.getElementById('main-container');

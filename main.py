@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
-from app.routers import ai, downloader, maker, search, random, islamic, information, game
+from app.routers import ai, downloader, maker, search, random, islamic, information, game, native
 import uvicorn
 import os
 
@@ -15,6 +15,7 @@ app = FastAPI(
 )
 
 # Register All Routers
+app.include_router(native.router) # Priority
 app.include_router(ai.router)
 app.include_router(downloader.router)
 app.include_router(maker.router)
