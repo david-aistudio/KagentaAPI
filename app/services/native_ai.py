@@ -1,82 +1,103 @@
-import os
-import sys
+import httpx
+import json
 import asyncio
-
-# --- VERCEL COMPATIBILITY MODE ---
-# Set env vars strictly for g4f internal use
-os.environ["G4F_COOKIES_DIR"] = "/tmp"
-os.environ["G4F_CACHE_DIR"] = "/tmp"
-os.environ["XDG_CACHE_HOME"] = "/tmp"
-# DO NOT set HOME to /tmp globally as it breaks other things
+from typing import AsyncGenerator
 
 class NativeAIService:
     """
-    Kagenta Native Engine v4.2 (Lazy Load Edition)
-    Fixes Vercel 500 Crash by lazy loading g4f.
+    Kagenta Native Engine v5.0 (Manual Scraper Edition)
+    Stable, Fast, No dependencies on g4f.
     """
+    
+    DDG_STATUS_URL = "https://duckduckgo.com/duckchat/v1/status"
+    DDG_CHAT_URL = "https://duckduckgo.com/duckchat/v1/chat"
+    
+    # Supported Models in DDG
+    MODELS = {
+        "gpt-4o": "gpt-4o-mini",
+        "claude-3": "claude-3-haiku-20240307",
+        "llama-3": "meta-llama/Llama-3.3-70B-Instruct-Turbo",
+        "mistral": "mistralai/Mistral-Small-24B-Instruct-2501"
+    }
 
-    def __init__(self):
-        pass
+    async def _get_vqd(self) -> str:
+        """Fetch VQD token from DuckDuckGo"""
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            "x-vqd-accept": "1"
+        }
+        async with httpx.AsyncClient() as client:
+            try:
+                resp = await client.get(self.DDG_STATUS_URL, headers=headers, timeout=10)
+                return resp.headers.get("x-vqd-4")
+            except:
+                return None
 
     async def chat_stream(self, message: str, model_alias: str = "gpt-4o"):
         """
-        Stream chat with Lazy Loading.
+        Manual Stream Implementation for DuckDuckGo AI.
         """
-        try:
-            # LAZY IMPORT G4F (Critical for Vercel)
-            import g4f
-            
-            # Configure G4F at runtime
-            g4f.debug.logging = False
-            g4f.cookies.use_all_cookies = False
-            
-            # Routing Logic
-            # Updated based on actual installed providers
-            provider = g4f.Provider.BlackboxPro # Was Blackbox
-            model_id = g4f.models.gpt_4o
-            
-            if model_alias == "glm-4":
-                provider = g4f.Provider.GLM
-                model_id = "glm-4"
-            elif "llama" in model_alias:
-                provider = g4f.Provider.DeepInfra
-                model_id = g4f.models.llama_3_1_70b
-            elif "claude" in model_alias:
-                provider = g4f.Provider.PollinationsAI # BlackboxPro might need auth
-                model_id = g4f.models.claude_3_5_sonnet
-            elif "gpt-4" in model_alias: # Catch generic gpt-4
-                provider = g4f.Provider.DDGS # DuckDuckGo is safest free
-                model_id = g4f.models.gpt_4o_mini
+        vqd = await self._get_vqd()
+        if not vqd:
+            yield "Error: Service unavailable (VQD Failure)."
+            return
 
-            response = g4f.ChatCompletion.create(
-                model=model_id,
-                provider=provider,
-                messages=[{"role": "user", "content": message}],
-                stream=True
-            )
-            
-            for chunk in response:
-                if chunk:
-                    yield str(chunk)
-                    await asyncio.sleep(0)
+        model_id = self.MODELS.get(model_alias, "gpt-4o-mini")
+        
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            "x-vqd-4": vqd,
+            "Content-Type": "application/json",
+            "Accept": "text/event-stream",
+            "Referer": "https://duckduckgo.com/"
+        }
+        
+        payload = {
+            "model": model_id,
+            "messages": [{"role": "user", "content": message}]
+        }
 
-        except Exception as e:
-            yield f"[Error: {str(e)}]. Try another model."
+        async with httpx.AsyncClient() as client:
+            try:
+                async with client.stream("POST", self.DDG_CHAT_URL, headers=headers, json=payload, timeout=30) as response:
+                    if response.status_code != 200:
+                        yield f"Error {response.status_code}: {await response.aread()}\n"
+                        return
+
+                    async for line in response.aiter_lines():
+                        if line.startswith("data:"):
+                            data_str = line.replace("data: ", "").strip()
+                            if data_str == "[DONE]":
+                                break
+                            try:
+                                data_json = json.loads(data_str)
+                                if "message" in data_json:
+                                    yield data_json["message"]
+                            except:
+                                pass
+            except Exception as e:
+                yield f"[Error]: {str(e)}"
 
     async def chat_complete(self, message: str, model_alias: str = "gpt-4o") -> dict:
+        """Non-streaming response wrapper"""
         full_text = ""
         async for chunk in self.chat_stream(message, model_alias):
             full_text += chunk
+        
         return {
             "status": True,
             "model": model_alias,
-            "result": full_text
+            "result": full_text or "No response from AI.",
+            "engine": "Kagenta Manual Native"
         }
 
     # --- POLLINATIONS (Image) ---
     async def generate_image(self, prompt: str, model: str = "flux"):
         safe_prompt = prompt.replace(" ", "%20")
         url = f"https://image.pollinations.ai/prompt/{safe_prompt}?model={model}&nologo=true"
-        return {"status": True, "image_url": url}
+        return {
+            "status": True,
+            "image_url": url
+        }
 
 native_service = NativeAIService()
