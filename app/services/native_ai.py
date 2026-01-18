@@ -22,6 +22,12 @@ class NativeAIService:
         # Optimizations for Serverless/CLI
         g4f.debug.logging = False
         g4f.debug.version_check = False
+        
+        # FIX: Vercel is read-only, force cookie dir to /tmp
+        import os
+        os.environ["G4F_COOKIES_DIR"] = "/tmp"
+        g4f.cookies.dir = "/tmp"
+        g4f.cookies.use_all_cookies = False
 
     async def chat_stream(self, message: str, model_alias: str = "gpt-4o"):
         """
