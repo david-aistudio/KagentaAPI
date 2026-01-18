@@ -66,7 +66,7 @@
             <span class="font-bold text-lg tracking-tight">Kagenta<span class="text-[#444]">Mail</span></span>
         </div>
         <div class="flex items-center gap-4">
-            <span class="text-xs font-mono text-[#444] hidden md:block">v1.0.0-ONYX</span>
+            <span class="text-xs font-mono text-[#444] hidden md:block">v1.1.0-RAG</span>
             <div class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
         </div>
     </header>
@@ -229,24 +229,21 @@
             const msg = input.value.trim();
             if (!msg) return;
 
-            // Add User Message
             addAiBubble(msg, true);
             input.value = '';
 
-            // Loading
             const id = addAiBubble("Thinking...", false, true);
 
             try {
-                // Determine model based on complexity (simple heuristics)
-                let model = "gpt5"; // Default
+                let model = "gpt5";
                 if (msg.toLowerCase().includes("search") || msg.toLowerCase().includes("find")) model = "perplexity";
                 
                 const res = await fetch(`/ai/chat?message=${encodeURIComponent(msg)}&model=${model}&context=${encodeURIComponent(currentEmail)}`);
                 const json = await res.json();
                 
-                // Update bubble
-                document.getElementById(id).innerText = json.data || json.message || "I am unable to answer that right now.";
-                document.getElementById(id).classList.remove('animate-pulse');
+                const responseText = json.result || json.data || json.message || "I am unable to answer that right now.";
+                document.getElementById(id).innerText = responseText;
+                document.getElementById(id).classList.remove('animate-pulse', 'italic', 'text-[#666]');
             } catch (e) {
                 document.getElementById(id).innerText = "Connection error.";
             }
@@ -271,7 +268,6 @@
         }
 
         // --- CORE FUNCTIONS ---
-        // ... (rest of the script is unchanged)
 
         async function generateEmail() {
             const display = document.getElementById('emailDisplay');
@@ -282,12 +278,15 @@
                 const res = await fetch('/api/create?version=v2');
                 const data = await res.json();
                 
-                if (data.email) {
-                    currentEmail = data.email;
+                // FIXED: Support result.email structure
+                const email = data.result?.email || data.email;
+                
+                if (email) {
+                    currentEmail = email;
                     localStorage.setItem('kg_email', currentEmail);
                     display.value = currentEmail;
-                    renderInbox([]); // Clear inbox
-                    refreshInbox(); // First check
+                    renderInbox([]); 
+                    refreshInbox();
                 } else {
                     display.value = "Error generating.";
                 }
@@ -302,7 +301,7 @@
             if (!currentEmail) return;
             
             const btn = document.querySelector('button[onclick="refreshInbox()"] i');
-            btn.classList.add('animate-spin');
+            if(btn) btn.classList.add('animate-spin');
 
             try {
                 const res = await fetch(`/api/inbox?email=${currentEmail}&version=v2`);
@@ -311,17 +310,16 @@
             } catch (e) {
                 console.error("Inbox error", e);
             } finally {
-                setTimeout(() => btn.classList.remove('animate-spin'), 500);
+                if(btn) setTimeout(() => btn.classList.remove('animate-spin'), 500);
             }
         }
 
-        function renderInbox(messages) {
+        function renderInbox(data) {
             const list = document.getElementById('inboxList');
             const count = document.getElementById('msgCount');
             
-            // Handle API response format (Nekolabs specific)
-            // Sometimes it returns { status: false } if empty or list if valid
-            const mails = Array.isArray(messages) ? messages : [];
+            // FIXED: Handle result array
+            const mails = Array.isArray(data.result) ? data.result : (Array.isArray(data) ? data : []);
             count.innerText = mails.length;
 
             if (mails.length === 0) {
@@ -352,8 +350,6 @@
             
             list.innerHTML = html;
             lucide.createIcons();
-            
-            // Store for modal
             window.currentMessages = mails;
         }
 
@@ -375,7 +371,6 @@
             document.getElementById('modalFrom').innerText = msg.from;
             document.getElementById('modalDate').innerText = msg.date || '';
             
-            // Handle body (text or html)
             const bodyDiv = document.getElementById('modalBody');
             if (msg.html) {
                 bodyDiv.innerHTML = msg.html;
@@ -386,7 +381,6 @@
             const modal = document.getElementById('mailModal');
             const content = document.getElementById('modalContent');
             modal.classList.remove('hidden');
-            // Small delay for transition
             setTimeout(() => {
                 modal.classList.remove('opacity-0');
                 content.classList.remove('scale-95');
@@ -397,17 +391,12 @@
         function closeModal() {
             const modal = document.getElementById('mailModal');
             const content = document.getElementById('modalContent');
-            
             modal.classList.add('opacity-0');
             content.classList.remove('scale-100');
             content.classList.add('scale-95');
-            
-            setTimeout(() => {
-                modal.classList.add('hidden');
-            }, 300);
+            setTimeout(() => { modal.classList.add('hidden'); }, 300);
         }
 
-        // --- AUTO REFRESH LOOP ---
         function startTimer() {
             const el = document.getElementById('timer');
             setInterval(() => {
@@ -416,11 +405,10 @@
                     refreshInbox();
                     countdown = 5;
                 }
-                el.innerText = countdown;
+                if(el) el.innerText = countdown;
             }, 1000);
         }
 
-        // --- INIT ---
         window.onload = () => {
             if (currentEmail) {
                 document.getElementById('emailDisplay').value = currentEmail;
@@ -430,7 +418,6 @@
             }
             startTimer();
         };
-
     </script>
 </body>
 </html>

@@ -42,12 +42,12 @@ class NekolabsService:
 
     # --- AI RAG CHAT ---
     async def chat_copilot(self, message: str):
-        return await self._get(f"/text.gen/copilot?message={message}")
+        return await self._get(f"/text.gen/copilot?text={message}")
 
     async def chat_gpt5(self, message: str):
-        return await self._get(f"/text.gen/gpt/5-nano?message={message}")
+        return await self._get(f"/text.gen/gpt/5-nano?text={message}")
 
     async def chat_perplexity(self, message: str):
-        return await self._get(f"/text.gen/perplexity?message={message}")
+        return await self._get(f"/text.gen/perplexity?text={message}")
 
 nekolabs = NekolabsService()
